@@ -290,27 +290,16 @@ const findItemById = (id) => {
 
 const MAX_QTY = 10;
 
-const updateQtyNotice = () => {
-    const notice = document.getElementById("qty-notice");
-    if (!notice) return;
-    const hasMax = Array.from(cartV2.values()).some((item) => item.qty >= MAX_QTY);
-    notice.style.display = hasMax ? "flex" : "none";
-};
-
 const addItemV2 = (id) => {
     const result = findItemById(id);
     if (!result || result.item.available === false) return;
     const { item, category } = result;
     const current = cartV2.get(id) || { ...item, category, qty: 0 };
-    if (current.qty >= MAX_QTY) {
-        updateQtyNotice();
-        return;
-    }
+    if (current.qty >= MAX_QTY) return;
     current.qty += 1;
     cartV2.set(id, current);
     updateQtyUI(id, current.qty);
     updateCartV2();
-    updateQtyNotice();
 };
 
 const removeItemV2 = (id) => {
@@ -325,7 +314,6 @@ const removeItemV2 = (id) => {
         updateQtyUI(id, current.qty);
     }
     updateCartV2();
-    updateQtyNotice();
 };
 
 const initCategoriesV2 = () => {
@@ -462,7 +450,6 @@ const initMenu = async () => {
     const usedFallback = await loadMenuData();
     renderMenu(window.menuData);
     updateCartV2();
-    updateQtyNotice();
     initCategoriesV2();
     initActionsV2();
     if (loadingEl) loadingEl.style.display = "none";
