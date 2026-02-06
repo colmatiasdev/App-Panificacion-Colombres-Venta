@@ -4,31 +4,34 @@
     --dark-blue: #0f172a;
     --gray-text: #64748b;
     --gray-bg: #f8fafc;
+    --toro-gold: #fbbf24;
 }
 
 * { box-sizing: border-box; }
 body {
     margin: 0;
-    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     background: #f1f5f9;
     color: #334155;
 }
 
-.topbar {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: white;
-    padding: 12px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid #e2e8f0;
+.header-premium {
+    position: relative;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.8) 100%), 
+                url('https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80');
+    background-size: cover;
+    background-position: center;
+    padding: 24px 20px 32px;
+    border-radius: 0 0 36px 36px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
-.topbar-left {
+.header-actions {
     display: flex;
-    gap: 12px;
+    justify-content: space-between;
     align-items: center;
+    margin-bottom: 16px;
 }
 .back-btn {
     width: 36px;
@@ -42,27 +45,79 @@ body {
     text-decoration: none;
     font-weight: 700;
 }
-.restaurant-name {
-    font-weight: 800;
-    color: var(--dark-blue);
+.back-btn-dark {
+    background: rgba(255,255,255,0.15);
+    color: white;
 }
-.restaurant-meta {
-    font-size: 0.85em;
-    color: var(--gray-text);
+.logo-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 12px;
 }
-.topbar-right {
+.logo-circle {
+    width: 72px;
+    height: 72px;
+    background: var(--primary-red);
+    border-radius: 50%;
     display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.1rem;
+    box-shadow: 0 0 20px rgba(225, 29, 72, 0.5);
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(225, 29, 72, 0); }
+    100% { transform: scale(1); }
+}
+.header-title {
+    font-family: 'Bungee', cursive;
+    font-size: 3.3rem;
+    margin: 8px 0 4px;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+    line-height: 1;
+}
+.header-title span {
+    color: var(--primary-red);
+    display: block;
+    font-size: 1.5rem;
+    letter-spacing: 5px;
+    margin-top: 6px;
+}
+.location-tag {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    display: inline-flex;
+    align-items: center;
     gap: 8px;
+    padding: 6px 15px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    margin: 14px 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
-.icon-btn {
-    border: none;
-    background: #f8fafc;
+.location-tag i { color: var(--primary-red); }
+.keywords-flex {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.badge-modern {
+    background: white;
     color: var(--dark-blue);
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
+.badge-modern i { color: var(--primary-red); }
 
 .promo {
     padding: 18px 20px 0;
@@ -111,7 +166,7 @@ body {
 
 .category-tabs {
     position: sticky;
-    top: 64px;
+    top: 0;
     z-index: 6;
     background: #f1f5f9;
     display: flex;
@@ -213,6 +268,7 @@ body {
 .qty-controls {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 6px;
     background: white;
     padding: 6px;
@@ -223,12 +279,13 @@ body {
     border: none;
     background: #f8fafc;
     color: var(--primary-red);
-    width: 32px;
-    height: 32px;
+    padding: 8px 12px;
     border-radius: 8px;
     font-weight: 900;
     cursor: pointer;
     transition: 0.2s;
+    font-size: 0.75em;
+    letter-spacing: 0.3px;
 }
 .qty-btn:hover {
     background: var(--soft-red);
@@ -306,8 +363,14 @@ body {
     .promo-card { grid-template-columns: 1fr; }
 }
 
+@media (max-width: 680px) {
+    .header-title { font-size: 2rem; }
+    .header-title span { letter-spacing: 4px; }
+}
+
 @media (max-width: 640px) {
     .item { grid-template-columns: 1fr; }
     .item img { width: 100%; height: 160px; }
-    .item-action { align-items: flex-start; }
+    .item-action { align-items: flex-end; }
+    .qty-controls { flex-wrap: wrap; }
 }
