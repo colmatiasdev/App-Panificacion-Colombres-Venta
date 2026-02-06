@@ -58,9 +58,9 @@ const renderV2 = () => {
                 </div>
                 <div class="item-action">
                     <div class="qty-controls is-empty" data-qty-wrapper="${item.id}">
-                        <button class="qty-btn" data-action="remove" data-id="${item.id}">-</button>
+                        <button class="qty-btn" data-action="remove" data-id="${item.id}">QUITAR</button>
                         <div id="qty-${item.id}" class="qty-value">0</div>
-                        <button class="qty-btn" data-action="add" data-id="${item.id}">+</button>
+                        <button class="qty-btn" data-action="add" data-id="${item.id}">AGREGAR</button>
                     </div>
                 </div>
             </article>
@@ -172,6 +172,32 @@ const initActionsV2 = () => {
     });
 };
 
+const loadHeaderV2 = async () => {
+    const container = document.getElementById("menu-v2-header");
+    if (!container) return;
+    try {
+        const response = await fetch("menu-v2-header.html");
+        if (!response.ok) return;
+        container.innerHTML = await response.text();
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+const loadPromoV2 = async () => {
+    const container = document.getElementById("menu-v2-promo");
+    if (!container) return;
+    try {
+        const response = await fetch("menu-v2-promo.html");
+        if (!response.ok) return;
+        container.innerHTML = await response.text();
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+loadHeaderV2();
+loadPromoV2();
 renderV2();
 updateCartV2();
 initCategoriesV2();
