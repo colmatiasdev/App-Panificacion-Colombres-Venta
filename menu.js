@@ -268,10 +268,19 @@ const updateCartV2 = () => {
     document.getElementById("v2-total").textContent = formatV2(total);
 };
 
+const findItemById = (id) => {
+    for (const section of window.menuData || []) {
+        const item = section.items.find((entry) => entry.id === id);
+        if (item) return { item, category: section.category };
+    }
+    return null;
+};
+
 const addItemV2 = (id) => {
-    const item = window.menuData?.flatMap(section => section.items).find((i) => i.id === id);
-    if (!item || item.available === false) return;
-    const current = cartV2.get(id) || { ...item, qty: 0 };
+    const result = findItemById(id);
+    if (!result || result.item.available === false) return;
+    const { item, category } = result;
+    const current = cartV2.get(id) || { ...item, category, qty: 0 };
     current.qty += 1;
     cartV2.set(id, current);
     updateQtyUI(id, current.qty);
@@ -339,7 +348,37 @@ const initActionsV2 = () => {
 
     const confirm = document.getElementById("v2-confirm");
     confirm?.addEventListener("click", () => {
-        window.location.href = "confirmacion.html";
+        if (cartV2.size === 0) {
+            alert("Selecciona productos antes de realizar el pedido.");
+            return;
+        }
+
+        const items = Array.from(cartV2.values()).map((item) => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            qty: item.qty,
+            subtotal: item.qty * item.price,
+            category: item.category || ""
+        }));
+        const subtotal = items.reduce((acc, item) => acc + item.subtotal, 0);
+        const delivery = subtotal > 0 && subtotal < freeFromV2 ? deliveryV2 : 0;
+        const total = subtotal + delivery;
+        const payload = {
+            createdAt: new Date().toISOString(),
+            items,
+            subtotal,
+            delivery,
+            total
+        };
+
+        const encoded = encodeURIComponent(JSON.stringify(payload));
+        try {
+            sessionStorage.setItem("toro_pedido", JSON.stringify(payload));
+        } catch (error) {
+            console.warn(error);
+        }
+        window.location.href = `pedidos.html?pedido=${encoded}`;
     });
 };
 
@@ -368,6 +407,7 @@ const loadPromoV2 = async () => {
 };
 
 const loadMenuData = async () => {
+    let usedFallback = false;
     try {
         const response = await fetch(URL_CSV);
         if (!response.ok) throw new Error("No se pudo cargar el CSV.");
@@ -375,24 +415,32 @@ const loadMenuData = async () => {
         const mapped = mapCsvToMenu(csvText);
         if (mapped && mapped.length) {
             window.menuData = mapped;
-            return;
+            return false;
         }
         console.warn("No se pudo mapear el CSV. Se usa el menú de ejemplo.");
+        usedFallback = true;
     } catch (error) {
         console.error(error);
+        usedFallback = true;
     }
     window.menuData = sampleMenuData;
+    return usedFallback;
 };
 
 const initMenu = async () => {
+    const loadingEl = document.getElementById("menu-loading");
+    if (loadingEl) loadingEl.style.display = "block";
     await loadHeaderV2();
     await loadPromoV2();
-    await loadMenuData();
+    const usedFallback = await loadMenuData();
     renderMenu(window.menuData);
     updateCartV2();
     initCategoriesV2();
     initSearchV2();
     initActionsV2();
+    if (loadingEl) loadingEl.style.display = "none";
+    const errorEl = document.getElementById("menu-error");
+    if (errorEl) errorEl.style.display = usedFallback ? "flex" : "none";
 };
 
 initMenu();
