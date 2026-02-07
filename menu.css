@@ -386,6 +386,12 @@ body {
 .checkout-items { min-height: 80px; }
 .checkout-empty { font-size: 0.85em; color: var(--gray-text); }
 .checkout-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9em; }
+.checkout-item.item-promo {
+    background: #fff7ed;
+    border: 1px solid #fdba74;
+    border-radius: 10px;
+    padding: 6px 10px;
+}
 .checkout-totals .row { display: flex; justify-content: space-between; margin-top: 10px; }
 .checkout-totals .total { border-top: 1px dashed #e2e8f0; padding-top: 10px; font-weight: 800; }
 .resumen-envio-row {

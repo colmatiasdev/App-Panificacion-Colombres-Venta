@@ -118,7 +118,8 @@
         }));
 
         const itemsWhatsApp = payload.items.map((item) => {
-            return `- (x${item.qty}) ${item.name} ${formatearMoneda(item.subtotal)}`;
+            const isPromo = (item.category || "").toLowerCase().includes("promo");
+            return `* (x${item.qty}) ${isPromo ? "[PROMO] " : ""}${item.name} ${formatearMoneda(item.subtotal)}`;
         }).join("\n");
 
         const subtotal = payload.subtotal || 0;
@@ -145,8 +146,8 @@
             sessionStorage.removeItem("toro_pedido");
         } catch (e) { console.error(e); }
 
-        let msg = `*TORO RÁPIDO - NUEVO PEDIDO*\n_ID: ${idPedido}_\n\n*CLIENTE:* ${n}\n*DIR:* ${d}\n*TEL:* ${w}\n\n*DETALLE:*\n${itemsWhatsApp}`;
-        msg += `\n*SUBTOTAL:* ${formatearMoneda(subtotal)}`;
+        let msg = `*TORO RÁPIDO - DELIVERY*\n_ID: ${idPedido}_\n\n*Cliente* ${n}\n*Domicilio:* ${d}\n*WSP:* ${w}\n\n*Detalle del Pedido*\n${itemsWhatsApp}`;
+        msg += `\n\n*SUBTOTAL:* ${formatearMoneda(subtotal)}`;
         msg += `\n*ENVÍO:* ${costoEnvio === 0 ? "¡GRATIS!" : formatearMoneda(costoEnvio)}`;
         msg += `\n*TOTAL:* ${formatearMoneda(subtotal + costoEnvio)}\n\n_⚠️ Sujeto a confirmación de zona._`;
 
@@ -187,12 +188,16 @@
         const payload = leerPedidoMenu();
         if (!payload || !Array.isArray(payload.items) || payload.items.length === 0) return;
 
-        list.innerHTML = payload.items.map((item) => `
-            <div class="resumen-menu-item">
-                <span>${item.qty}x ${item.name}</span>
-                <strong>${formatearMoneda(item.subtotal)}</strong>
-            </div>
-        `).join("");
+        list.innerHTML = payload.items.map((item) => {
+            const isPromo = (item.category || "").toLowerCase().includes("promo");
+            const label = `${item.qty}x ${item.name}${isPromo ? " [PROMO]" : ""}`;
+            return `
+                <div class="resumen-menu-item${isPromo ? " item-promo" : ""}">
+                    <span>${label}</span>
+                    <strong>${formatearMoneda(item.subtotal)}</strong>
+                </div>
+            `;
+        }).join("");
 
         subtotalEl.innerText = formatearMoneda(payload.subtotal || 0);
         const envioRow = document.getElementById("resumen-envio-row");

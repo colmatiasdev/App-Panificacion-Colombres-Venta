@@ -264,9 +264,11 @@ const updateCartV2 = () => {
     } else {
         container.innerHTML = "";
         cartV2.forEach((item) => {
+            const isPromo = (item.category || "").toLowerCase().includes("promo");
             const row = document.createElement("div");
-            row.className = "checkout-item";
-            row.innerHTML = `<span>${item.qty}x ${item.name}</span><strong>${formatV2(item.qty * item.price)}</strong>`;
+            row.className = `checkout-item${isPromo ? " item-promo" : ""}`;
+            const label = `${item.qty}x ${item.name}${isPromo ? " [PROMO]" : ""}`;
+            row.innerHTML = `<span>${label}</span><strong>${formatV2(item.qty * item.price)}</strong>`;
             container.appendChild(row);
         });
     }
@@ -364,7 +366,7 @@ const initActionsV2 = () => {
             return;
         }
 
-        const items = Array.from(cartV2.values()).map((item) => ({
+    const items = Array.from(cartV2.values()).map((item) => ({
             id: item.id,
             name: item.name,
             price: item.price,
