@@ -14,8 +14,9 @@ body {
     color: #334155;
     margin: 0;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
     min-height: 100vh;
     padding: 20px;
 }
@@ -28,6 +29,7 @@ body {
     border-radius: 30px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.08);
     text-align: center;
+    margin: 40px auto;
 }
 
 .success-badge {
@@ -127,3 +129,8 @@ p { color: #64748b; line-height: 1.5; margin-bottom: 30px; font-size: 0.95em; }
 }
 
 .btn-back:hover { color: var(--dark-blue); }
+
+.pedido-pie {
+    margin-top: auto;
+    width: 100%;
+}

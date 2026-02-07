@@ -50,17 +50,10 @@
     </a>
 </div>
 
-<div id="site-footer"></div>
-
-<script>
-    fetch("footer.html")
-        .then((res) => (res.ok ? res.text() : ""))
-        .then((html) => {
-            const container = document.getElementById("site-footer");
-            if (container) container.innerHTML = html;
-            window.applyFooterConfig?.();
-        })
-        .catch(() => {});
-</script>
+<footer class="pedido-pie">
+    <div class="pie-copyright">
+        &copy; 2026 Toro Rápido - S.M. de Tucumán. Todos los derechos reservados.
+    </div>
+</footer>
 </body>
 </html>
