@@ -207,6 +207,9 @@ body {
     box-shadow: 0 4px 12px rgba(15,23,42,0.08);
     transition: 0.2s;
     white-space: nowrap;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .tab-promo {
     border: 1px solid rgba(251, 191, 36, 0.4);
@@ -471,7 +474,7 @@ body {
     .location-tag { font-size: 0.74rem; padding: 4px 8px; }
     .badge-modern { padding: 5px 9px; font-size: 0.68rem; }
     .category-tabs { padding: 8px 10px; gap: 6px; }
-    .tab { padding: 6px 10px; font-size: 0.78em; }
+    .tab { padding: 6px 10px; font-size: 0.78em; max-width: 110px; }
     .content { padding: 10px; gap: 14px; }
     .menu { padding: 14px; border-radius: 18px; }
     .item { padding: 10px; }
