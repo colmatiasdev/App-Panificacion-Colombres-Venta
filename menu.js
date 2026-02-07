@@ -276,7 +276,15 @@ const updateCartV2 = () => {
     const total = subtotal + envio;
 
     document.getElementById("v2-subtotal").textContent = formatV2(subtotal);
-    document.getElementById("v2-envio").textContent = subtotal === 0 ? "$ 0" : (envio === 0 ? "¡Gratis!" : formatV2(envio));
+    const envioEl = document.getElementById("v2-envio");
+    const envioRow = document.getElementById("menu-envio-row");
+    const isGratis = subtotal > 0 && envio === 0;
+    if (envioEl) {
+        envioEl.textContent = subtotal === 0 ? "$ 0" : (isGratis ? "¡GRATIS!" : formatV2(envio));
+    }
+    if (envioRow) {
+        envioRow.classList.toggle("envio-gratis", isGratis);
+    }
     document.getElementById("v2-total").textContent = formatV2(total);
 };
 
@@ -409,6 +417,16 @@ const loadPromoV2 = async () => {
     }
 };
 
+const bindHeaderActions = () => {
+    const backBtn = document.querySelector(".back-btn");
+    if (backBtn) {
+        backBtn.addEventListener("click", (event) => {
+            event.preventDefault();
+            window.location.href = "index.html";
+        });
+    }
+};
+
 const loadFooter = async () => {
     const container = document.getElementById("site-footer");
     if (!container) return;
@@ -442,13 +460,35 @@ const loadMenuData = async () => {
     return usedFallback;
 };
 
+const restoreCartFromStorage = () => {
+    try {
+        const stored = sessionStorage.getItem("toro_pedido");
+        if (!stored) return;
+        const payload = JSON.parse(stored);
+        if (!payload || !Array.isArray(payload.items)) return;
+
+        payload.items.forEach((entry) => {
+            const result = findItemById(entry.id);
+            if (!result || result.item.available === false) return;
+            const qty = Math.min(Number(entry.qty) || 0, MAX_QTY);
+            if (qty <= 0) return;
+            cartV2.set(entry.id, { ...result.item, category: result.category, qty });
+            updateQtyUI(entry.id, qty);
+        });
+    } catch (error) {
+        console.warn(error);
+    }
+};
+
 const initMenu = async () => {
     const loadingEl = document.getElementById("menu-loading");
     if (loadingEl) loadingEl.style.display = "block";
     await loadHeaderV2();
     await loadPromoV2();
+    bindHeaderActions();
     const usedFallback = await loadMenuData();
     renderMenu(window.menuData);
+    restoreCartFromStorage();
     updateCartV2();
     initCategoriesV2();
     initActionsV2();
@@ -456,6 +496,15 @@ const initMenu = async () => {
     const errorEl = document.getElementById("menu-error");
     if (errorEl) errorEl.style.display = usedFallback ? "flex" : "none";
     await loadFooter();
+
+    try {
+        if (sessionStorage.getItem("toro_scroll_resumen") === "1") {
+            sessionStorage.removeItem("toro_scroll_resumen");
+            document.getElementById("resumen-pedido")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    } catch (error) {
+        console.warn(error);
+    }
 };
 
 initMenu();

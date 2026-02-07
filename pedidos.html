@@ -18,6 +18,10 @@
 </div>
 
 <div class="contenedor">
+    <a href="menu.html" class="boton-volver-menu" onclick="sessionStorage.setItem('toro_scroll_resumen','1')">
+        <i class="fa-solid fa-pen-to-square"></i> Modificar pedido
+    </a>
+
     <div class="resumen-menu" id="resumen-menu" style="display:none;">
         <div class="resumen-menu-title">Resumen del pedido realizado</div>
         <div id="resumen-menu-items"></div>
@@ -25,7 +29,7 @@
             <span>Subtotal</span>
             <strong id="resumen-menu-subtotal">$ 0</strong>
         </div>
-        <div class="resumen-menu-row">
+        <div class="resumen-menu-row resumen-envio-row" id="resumen-envio-row">
             <span>Envío</span>
             <strong id="resumen-menu-envio">$ 0</strong>
         </div>
@@ -138,6 +142,7 @@
                     productos: productosParaSheet
                 })
             });
+            sessionStorage.removeItem("toro_pedido");
         } catch (e) { console.error(e); }
 
         let msg = `*TORO RÁPIDO - NUEVO PEDIDO*\n_ID: ${idPedido}_\n\n*CLIENTE:* ${n}\n*DIR:* ${d}\n*TEL:* ${w}\n\n*DETALLE:*\n${itemsWhatsApp}`;
@@ -190,10 +195,13 @@
         `).join("");
 
         subtotalEl.innerText = formatearMoneda(payload.subtotal || 0);
+        const envioRow = document.getElementById("resumen-envio-row");
         if ((payload.subtotal || 0) > 0 && (payload.delivery || 0) === 0) {
             envioEl.innerText = "¡GRATIS!";
+            if (envioRow) envioRow.classList.add("envio-gratis");
         } else {
             envioEl.innerText = formatearMoneda(payload.delivery || 0);
+            if (envioRow) envioRow.classList.remove("envio-gratis");
         }
         totalEl.innerText = formatearMoneda(payload.total || 0);
         container.style.display = "block";

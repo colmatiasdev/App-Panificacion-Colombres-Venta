@@ -91,6 +91,19 @@ body { font-family: 'Inter', system-ui, sans-serif; color: #334155; }
     font-size: 0.9em;
     padding: 8px 0;
 }
+.resumen-envio-row {
+    background: #f8fafc;
+    border: 1px dashed #e2e8f0;
+    border-radius: 12px;
+    padding: 8px 12px;
+    margin: 6px 0;
+}
+.resumen-envio-row.envio-gratis {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: #166534;
+    font-weight: 800;
+}
 .resumen-menu-total {
     margin-top: 10px;
     background: var(--rojo-suave);
@@ -118,6 +131,7 @@ body { font-family: 'Inter', system-ui, sans-serif; color: #334155; }
 .input-group i { position: absolute; left: 18px; top: 35px; color: #166534; font-size: 1.1em; }
 
 .boton-pedido { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; background: var(--whatsapp-color); color: white; height: 65px; border-radius: 18px; border: none; font-size: 1.1em; font-weight: 800; margin-top: 20px; box-shadow: 0 10px 20px rgba(37, 211, 102, 0.2); cursor: pointer; }
+.boton-volver-menu { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; background: var(--rojo-toro); color: white; height: 55px; border-radius: 18px; text-decoration: none; font-size: 1em; font-weight: 800; margin-top: 12px; border: 1px solid rgba(225, 29, 72, 0.4); box-shadow: 0 10px 20px rgba(225, 29, 72, 0.22); }
 
 
 #overlay-carga { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.8); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; }
