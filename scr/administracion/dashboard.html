@@ -7,28 +7,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="login/login.css">
 </head>
 <body>
     <main class="dashboard">
-        <section class="login-card" id="login-card">
-            <div class="login-header">
-                <div class="dash-icon"><i class="fa-solid fa-lock"></i></div>
-                <h1>Acceso al Dashboard</h1>
-                <p>Ingresá tus credenciales para continuar.</p>
-            </div>
-            <form class="login-form" id="login-form">
-                <label class="field">
-                    <span>Usuario</span>
-                    <input type="text" id="login-user" placeholder="admin" autocomplete="username" required>
-                </label>
-                <label class="field">
-                    <span>Contraseña</span>
-                    <input type="password" id="login-pass" placeholder="admin" autocomplete="current-password" required>
-                </label>
-                <button class="dash-btn" type="submit">Ingresar</button>
-                <div class="login-error" id="login-error">Usuario o contraseña incorrectos.</div>
-            </form>
-        </section>
+        <section id="login-slot" aria-live="polite"></section>
 
         <section class="dashboard-content" id="dashboard-content" aria-hidden="true">
             <header class="dashboard-header">
@@ -46,9 +29,16 @@
 
                 <article class="dash-card">
                     <div class="dash-icon"><i class="fa-solid fa-layer-group"></i></div>
-                    <h2>Admin Menú</h2>
+                    <h2>Menú simple</h2>
                     <p>Visualizá los ítems del menú desde el Sheet.</p>
-                    <a class="dash-btn" href="admin-menu/admin-menu.html">Abrir admin menú</a>
+                    <a class="dash-btn" href="admin-menu-simple/admin-menu-simple.html">Abrir menú simple</a>
+                </article>
+
+                <article class="dash-card">
+                    <div class="dash-icon"><i class="fa-solid fa-list-check"></i></div>
+                    <h2>Menú compuesto</h2>
+                    <p>Gestioná combinaciones y opciones del menú.</p>
+                    <a class="dash-btn" href="admin-menu-compuesto/admin-menu-compuesto.html">Abrir menú compuesto</a>
                 </article>
 
                 <article class="dash-card">
@@ -82,62 +72,8 @@
             <div class="footer-meta">© <span data-admin-year></span> Todos los derechos reservados.</div>
         </div>
     </footer>
-    <script src="admin-footer.js"></script>
-
-    <script>
-        const AUTH_KEY = "toro_admin_auth";
-        const loginForm = document.getElementById("login-form");
-        const loginUser = document.getElementById("login-user");
-        const loginPass = document.getElementById("login-pass");
-        const loginError = document.getElementById("login-error");
-        const loginCard = document.getElementById("login-card");
-        const dashboardContent = document.getElementById("dashboard-content");
-        const logoutBtn = document.getElementById("logout-btn");
-
-        const showDashboard = () => {
-            if (loginError) loginError.style.display = "none";
-            if (loginCard) loginCard.style.display = "none";
-            if (dashboardContent) {
-                dashboardContent.style.display = "block";
-                dashboardContent.setAttribute("aria-hidden", "false");
-            }
-        };
-
-        const showLogin = () => {
-            if (loginCard) loginCard.style.display = "grid";
-            if (dashboardContent) {
-                dashboardContent.style.display = "none";
-                dashboardContent.setAttribute("aria-hidden", "true");
-            }
-        };
-
-        try {
-            if (sessionStorage.getItem(AUTH_KEY) === "1") {
-                showDashboard();
-            } else {
-                showLogin();
-            }
-        } catch (e) {
-            showLogin();
-        }
-
-        loginForm?.addEventListener("submit", (event) => {
-            event.preventDefault();
-            const user = loginUser?.value.trim() || "";
-            const pass = loginPass?.value.trim() || "";
-            const ok = user === "admin" && pass === "admin";
-            if (!ok) {
-                if (loginError) loginError.style.display = "block";
-                return;
-            }
-            try { sessionStorage.setItem(AUTH_KEY, "1"); } catch (e) {}
-            showDashboard();
-        });
-
-        logoutBtn?.addEventListener("click", () => {
-            try { sessionStorage.removeItem(AUTH_KEY); } catch (e) {}
-            showLogin();
-        });
-    </script>
+    <script src="admin-common.js"></script>
+    <script src="login/login.js"></script>
+    <script src="dashboard.js"></script>
 </body>
 </html>
