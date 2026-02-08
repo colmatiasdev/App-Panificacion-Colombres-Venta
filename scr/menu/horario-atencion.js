@@ -115,14 +115,14 @@
             if (offset === 0) {
                 for (const d of desdes) {
                     if (d > minutosAhora) {
-                        return { minutosDesdeAhora: d - minutosAhora, hora: Math.floor(d / 60), minuto: d % 60 };
+                        return { minutosDesdeAhora: d - minutosAhora, hora: Math.floor(d / 60), minuto: d % 60, diaAperturaNombre: diaNombre, offsetDias: 0 };
                     }
                 }
             } else {
                 const d = desdes[0];
                 const minutosHastaMedianoche = 24 * 60 - minutosAhora;
                 const minutosHastaApertura = minutosHastaMedianoche + (offset - 1) * 24 * 60 + d;
-                return { minutosDesdeAhora: minutosHastaApertura, hora: Math.floor(d / 60), minuto: d % 60 };
+                return { minutosDesdeAhora: minutosHastaApertura, hora: Math.floor(d / 60), minuto: d % 60, diaAperturaNombre: diaNombre, offsetDias: offset };
             }
         }
         return null;
@@ -196,6 +196,81 @@
 
     const FETCH_SHEET_TIMEOUT = 10000;
 
+    const FERIADO_KEYS = {
+        fecha: ["FECHA", "fecha", "Fecha"],
+        seAtiende: ["SE_ATIENDE", "se atiende", "Se Atiende"],
+        horaDesde: ["HORA DESDE", "Hora Desde", "hora desde"],
+        minDesde: ["MINUTO DESDE", "Minuto Desde", "minuto desde"],
+        horaHasta: ["HORA HASTA", "Hora Hasta", "hora hasta"],
+        minHasta: ["MINUTO HASTA", "Minuto Hasta", "minuto hasta"]
+    };
+
+    function rowsFromData(data) {
+        if (!data || data.error || data.result === "error") return null;
+        if (Array.isArray(data)) return data;
+        if (Array.isArray(data.rows) && Array.isArray(data.headers)) {
+            const headers = data.headers.map((h) => (h != null ? String(h).trim() : ""));
+            return data.rows.map((row) => {
+                const obj = {};
+                headers.forEach((h, i) => { obj[h] = row[i]; });
+                return obj;
+            });
+        }
+        if (Array.isArray(data.data)) return data.data;
+        return null;
+    }
+
+    /** Parsea filas de FERIADO-TORO-RAPIDO: { fecha (Date), seAtiende (bool), rango24h }. */
+    function parseFeriadosRows(rows) {
+        const list = [];
+        (rows || []).forEach((row) => {
+            const fechaStr = String(getValue(row, FERIADO_KEYS.fecha)).trim();
+            if (!fechaStr) return;
+            const match = fechaStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            const fecha = match ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])) : null;
+            if (!fecha || Number.isNaN(fecha.getTime())) return;
+            const seAtiendeRaw = String(getValue(row, FERIADO_KEYS.seAtiende)).trim().toUpperCase();
+            const seAtiende = seAtiendeRaw === "SI" || seAtiendeRaw === "SÍ";
+            let rango24h = "";
+            if (seAtiende) {
+                const desde = formatHora24(getValue(row, FERIADO_KEYS.horaDesde), getValue(row, FERIADO_KEYS.minDesde));
+                const hasta = formatHora24(getValue(row, FERIADO_KEYS.horaHasta), getValue(row, FERIADO_KEYS.minHasta));
+                rango24h = `${desde} - ${hasta}`;
+            }
+            list.push({ fecha, seAtiende, rango24h });
+        });
+        return list.sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
+    }
+
+    function getFeriadoParaFecha(feriados, date) {
+        if (!feriados || !feriados.length) return null;
+        const d = new Date(date);
+        d.setHours(0, 0, 0, 0);
+        for (const f of feriados) {
+            const fd = new Date(f.fecha);
+            fd.setHours(0, 0, 0, 0);
+            if (d.getTime() === fd.getTime()) return f;
+        }
+        return null;
+    }
+
+    /**
+     * Si hoy es feriado con SE_ATIENDE=SI, prevalece el horario del feriado para ese día.
+     * Si SE_ATIENDE=NO, prevalece HORARIO-TORO-RAPIDO (no se reemplaza).
+     */
+    function mergeByDayConFeriadoHoy(byDay, feriados) {
+        const res = {};
+        for (const dia of ORDEN_DIAS) res[dia] = (byDay[dia] && [...byDay[dia]]) || [];
+        const hoy = new Date();
+        const feriadoHoy = getFeriadoParaFecha(feriados, hoy);
+        if (!feriadoHoy) return res;
+        const diaHoy = DIA_HOY_NAMES[hoy.getDay()];
+        if (feriadoHoy.seAtiende && feriadoHoy.rango24h) {
+            res[diaHoy] = [feriadoHoy.rango24h];
+        }
+        return res;
+    }
+
     async function fetchHorarioByDay() {
         const scriptUrl = global.APP_CONFIG?.appsScriptMenuUrl || global.APP_CONFIG?.appsScriptPedidosUrl || "";
         const sheetName = global.APP_CONFIG?.horarioSheetName || "HORARIO-TORO-RAPIDO";
@@ -229,6 +304,45 @@
         }
     }
 
+    async function fetchFeriados() {
+        const scriptUrl = global.APP_CONFIG?.appsScriptMenuUrl || global.APP_CONFIG?.appsScriptPedidosUrl || "";
+        const sheetName = global.APP_CONFIG?.feriadoSheetName || "FERIADO-TORO-RAPIDO";
+        if (!scriptUrl || !sheetName) return [];
+        const sep = scriptUrl.includes("?") ? "&" : "?";
+        const url = `${scriptUrl}${sep}action=list&sheetName=${encodeURIComponent(sheetName)}&_ts=${Date.now()}`;
+        try {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), FETCH_SHEET_TIMEOUT);
+            const response = await fetch(url, { cache: "no-store", signal: controller.signal });
+            clearTimeout(id);
+            if (!response.ok) return [];
+            const text = await response.text();
+            let data = null;
+            try { data = JSON.parse(text); } catch (e) { return []; }
+            const rows = rowsFromData(data);
+            return rows != null ? parseFeriadosRows(rows) : [];
+        } catch (e) {
+            if (e.name !== "AbortError") console.warn("Feriados menú:", e);
+            return [];
+        }
+    }
+
+    /**
+     * Horario efectivo: trae HORARIO-TORO-RAPIDO y feriados.
+     * - Si hoy es feriado con SE_ATIENDE=SI: usa el horario del feriado para hoy (prevalece sobre HORARIO-TORO-RAPIDO).
+     * - Si hoy es feriado con SE_ATIENDE=NO: prevalece HORARIO-TORO-RAPIDO para el horario; además feriadoHoySinAtender=true (menú deshabilita pedido y reserva, oculta "Ver pedido").
+     * - Si hoy no está en feriados: solo HORARIO-TORO-RAPIDO.
+     * @returns {{ byDay: object, feriadoHoySinAtender: boolean }}
+     */
+    async function getHorarioEfectivo() {
+        const byDay = await fetchHorarioByDay();
+        const feriados = await fetchFeriados();
+        const merged = mergeByDayConFeriadoHoy(byDay || {}, feriados);
+        const feriadoHoy = getFeriadoParaFecha(feriados, new Date());
+        const feriadoHoySinAtender = !!(feriadoHoy && !feriadoHoy.seAtiende);
+        return { byDay: merged, feriadoHoySinAtender };
+    }
+
     /**
      * Devuelve el estado para mostrar en menú: { abierto, tipo, mensaje }.
      * tipo: "abierto" | "abierto-pronto-cierre" | "cerrado-abre-en" | "cerrado"
@@ -257,7 +371,16 @@
         const puedeReservar = proxima && proxima.minutosDesdeAhora <= horasReserva * 60;
         const minutosHastaApertura = proxima ? proxima.minutosDesdeAhora : null;
         const textoHastaApertura = minutosHastaApertura != null ? formatTiempoHastaApertura(minutosHastaApertura) : null;
-        const extra = proxima ? { horaApertura: horaStr, minutosHastaApertura, textoHastaApertura } : {};
+        const diaAperturaLabel = proxima
+            ? proxima.offsetDias === 0
+                ? "hoy"
+                : proxima.offsetDias === 1
+                    ? "mañana"
+                    : "el " + proxima.diaAperturaNombre
+            : null;
+        const extra = proxima
+            ? { horaApertura: horaStr, minutosHastaApertura, textoHastaApertura, diaAperturaNombre: proxima.diaAperturaNombre, diaAperturaLabel }
+            : {};
         if (mostrarAbreEn) {
             return { abierto: false, tipo: "cerrado-abre-en", mensaje: `El local abre a las ${horaStr}`, puedeReservar, ...extra };
         }
@@ -275,6 +398,8 @@
 
     global.HorarioAtencion = {
         fetchHorarioByDay,
+        fetchFeriados,
+        getHorarioEfectivo,
         getEstadoHorario,
         formatCountdown,
         formatTiempoHastaApertura

@@ -673,6 +673,33 @@ body {
     box-shadow: 0 10px 30px rgba(15,23,42,0.08);
 }
 .checkout-title { font-weight: 800; color: var(--dark-blue); margin-bottom: 10px; }
+.menu-resumen-cerrado-leyenda {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    margin: 0 -4px 14px 0;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    color: #991b1b;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+.menu-resumen-cerrado-leyenda i {
+    flex-shrink: 0;
+    margin-top: 0.1em;
+    font-size: 1.1rem;
+}
+.checkout-card--cerrado .checkout-items,
+.checkout-card--cerrado .checkout-totals,
+.checkout-card--cerrado .checkout-btn,
+.checkout-card--cerrado .checkout-note {
+    opacity: 0.6;
+    pointer-events: none;
+    user-select: none;
+}
+.checkout-card--cerrado .checkout-title { opacity: 0.75; }
 .checkout-items { min-height: 80px; }
 .checkout-empty { font-size: 0.85em; color: var(--gray-text); }
 .checkout-item {

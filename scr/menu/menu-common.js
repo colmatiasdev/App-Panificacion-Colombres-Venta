@@ -384,7 +384,7 @@ const applyReservaUI = (estado) => {
         const tiempoLine = estado.textoHastaApertura
             ? "<p class=\"menu-resumen-alerta-reserva-tiempo\">" + estado.textoHastaApertura + "</p>"
             : "";
-        const content = "<div class=\"menu-resumen-alerta-reserva-content\"><div class=\"menu-resumen-alerta-reserva-titulo\"><i class=\"fa-solid fa-calendar-check\"></i> Estás realizando una <strong>RESERVA</strong></div><p class=\"menu-resumen-alerta-reserva-leyenda\">La reserva del pedido será tomada al momento de la apertura del local.</p>" + tiempoLine + "</div>";
+        const content = "<div class=\"menu-resumen-alerta-reserva-content\"><div class=\"menu-resumen-alerta-reserva-titulo\"><i class=\"fa-solid fa-calendar-check\"></i> Podés realizar una <strong>RESERVA</strong></div><p class=\"menu-resumen-alerta-reserva-leyenda\">La reserva del pedido será tomada al momento de la apertura del local.</p>" + tiempoLine + "</div>";
         if (!alertaReserva) {
             alertaReserva = document.createElement("div");
             alertaReserva.id = "menu-resumen-alerta-reserva";
@@ -440,12 +440,54 @@ const getMinutosCuentaRegresiva = () => Math.max(0, Number(window.APP_CONFIG?.mi
 /** Rellena las alertas de horario (portada y resumen) con la misma lógica que index: minutos antes de apertura/cierre. */
 const initHorarioAlertaMenu = async () => {
     if (typeof window.HorarioAtencion === "undefined") return;
-    const byDay = await window.HorarioAtencion.fetchHorarioByDay();
-    const estado = window.HorarioAtencion.getEstadoHorario(byDay);
+    const result = await window.HorarioAtencion.getHorarioEfectivo();
+    const byDay = result.byDay != null ? result.byDay : result;
+    const feriadoHoySinAtender = result.feriadoHoySinAtender === true;
+    const estado = feriadoHoySinAtender
+        ? { abierto: false, tipo: "cerrado", mensaje: "Feriado sin atención", puedeReservar: false }
+        : window.HorarioAtencion.getEstadoHorario(byDay);
     const seg = estado.segundosHastaCierre != null ? estado.segundosHastaCierre : 0;
     const umbralSeg = getMinutosCuentaRegresiva() * 60;
     const mostrarCountdown = estado.tipo === "abierto-pronto-cierre" && seg > 0 && seg <= umbralSeg;
     const endMs = mostrarCountdown ? Date.now() + seg * 1000 : 0;
+
+    const cardResumen = document.getElementById("resumen-pedido");
+    const esCerrado = feriadoHoySinAtender || estado.tipo === "cerrado" || estado.tipo === "cerrado-abre-en";
+    const esReserva = !feriadoHoySinAtender && estado.puedeReservar === true;
+    if (cardResumen) {
+        let leyendaCerrado = document.getElementById("menu-resumen-cerrado-leyenda");
+        if (esCerrado && !esReserva) {
+            const partes = feriadoHoySinAtender
+                ? ["El local está cerrado. Hoy no se atiende por feriado."]
+                : ["El local está cerrado."];
+            if (!feriadoHoySinAtender && estado.diaAperturaLabel && estado.horaApertura) {
+                partes.push(" Abre " + estado.diaAperturaLabel + " a las " + estado.horaApertura + ".");
+            }
+            if (!feriadoHoySinAtender && estado.textoHastaApertura) {
+                partes.push(" " + estado.textoHastaApertura + ".");
+            }
+            const textoLeyenda = partes.join("");
+            if (!leyendaCerrado) {
+                leyendaCerrado = document.createElement("div");
+                leyendaCerrado.id = "menu-resumen-cerrado-leyenda";
+                leyendaCerrado.className = "menu-resumen-cerrado-leyenda";
+                const icon = document.createElement("i");
+                icon.className = "fa-solid fa-store-slash";
+                icon.setAttribute("aria-hidden", "true");
+                leyendaCerrado.appendChild(icon);
+                leyendaCerrado.appendChild(document.createTextNode(textoLeyenda));
+                cardResumen.insertBefore(leyendaCerrado, cardResumen.firstChild);
+            } else {
+                const textNode = Array.from(leyendaCerrado.childNodes).find((n) => n.nodeType === Node.TEXT_NODE);
+                if (textNode) textNode.textContent = textoLeyenda;
+            }
+            leyendaCerrado.style.display = "";
+            cardResumen.classList.add("checkout-card--cerrado");
+        } else {
+            if (leyendaCerrado) leyendaCerrado.style.display = "none";
+            cardResumen.classList.remove("checkout-card--cerrado");
+        }
+    }
 
     const renderAlerta = (containerId) => {
         const wrap = document.getElementById(containerId);
@@ -485,8 +527,6 @@ const initHorarioAlertaMenu = async () => {
     if (floatingCerradoEl) floatingCerradoEl.remove();
     const mostrarBadgeCerrado = window.APP_CONFIG?.mostrarBadgeFlotanteCerrado !== false;
     const mostrarBadgeReserva = window.APP_CONFIG?.mostrarBadgeFlotanteReserva !== false;
-    const esCerrado = estado.tipo === "cerrado" || estado.tipo === "cerrado-abre-en";
-    const esReserva = estado.puedeReservar === true;
     const mostrarBadge = esCerrado && (esReserva ? mostrarBadgeReserva : mostrarBadgeCerrado);
     if (mostrarBadge) {
         const textoCerrado = esReserva

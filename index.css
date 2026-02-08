@@ -389,10 +389,31 @@ body {
 .delivery-btn.rappi { background: #ff441f; }
 
 /* Horario de atención (desde hoja HORARIO-TORO-RAPIDO) */
+#seccion-horario .social-container {
+    text-align: center;
+}
 .horario-atencion-wrap {
-    text-align: left;
+    text-align: center;
     max-width: 360px;
     margin: 0 auto;
+}
+#seccion-horario .horario-list {
+    align-items: center;
+}
+#seccion-horario .horario-dia {
+    width: 100%;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+    justify-items: center;
+    text-align: center;
+}
+#seccion-horario .horario-dia-nombre {
+    text-align: center;
+}
+#seccion-horario .horario-proximo-feriado {
+    margin-left: auto;
+    margin-right: auto;
 }
 .horario-loading {
     color: #64748b;

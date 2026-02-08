@@ -180,6 +180,36 @@ const fetchSheetData = async (sheetName) => {
 
 const fetchHorarioData = async () => fetchSheetData(window.APP_CONFIG?.horarioSheetName || "HORARIO-TORO-RAPIDO");
 
+/** Devuelve el feriado que corresponde a la fecha dada (mismo día), o null. */
+const getFeriadoParaFecha = (feriados, date) => {
+    if (!feriados || !feriados.length) return null;
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    for (const f of feriados) {
+        const fd = new Date(f.fecha);
+        fd.setHours(0, 0, 0, 0);
+        if (d.getTime() === fd.getTime()) return f;
+    }
+    return null;
+};
+
+/**
+ * Horario efectivo: si hoy es un feriado con SE_ATIENDE=SI, prevalece el horario del feriado para ese día.
+ * Si SE_ATIENDE=NO, prevalece el horario de HORARIO-TORO-RAPIDO (no se reemplaza).
+ */
+const mergeByDayConFeriadoHoy = (byDay, feriados) => {
+    const res = {};
+    for (const dia of ORDEN_DIAS) res[dia] = (byDay[dia] && [...byDay[dia]]) || [];
+    const hoy = new Date();
+    const feriadoHoy = getFeriadoParaFecha(feriados, hoy);
+    if (!feriadoHoy) return res;
+    const diaHoy = DIA_HOY_NAMES[hoy.getDay()];
+    if (feriadoHoy.seAtiende && feriadoHoy.rango24h) {
+        res[diaHoy] = [feriadoHoy.rango24h];
+    }
+    return res;
+};
+
 /** Agrupa filas por DIA y formatea franjas en 24h. Retorna { [dia]: ["07:00 - 15:00", "17:00 - 21:00"], ... } */
 const parseHorarioRows = (rows) => {
     const byDay = {};
@@ -576,10 +606,11 @@ const loadHorarioAtencion = async () => {
     }
 
     const byDay = parseHorarioRows(rawHorario);
-    const diasConDatos = Object.keys(byDay).filter((d) => byDay[d].length > 0);
+    const byDayEfectivo = mergeByDayConFeriadoHoy(byDay || {}, feriados);
+    const diasConDatos = Object.keys(byDay || {}).filter((d) => (byDay || {})[d].length > 0);
 
     if (rawHorario != null) {
-        updateHeroEstadoLocal(estaAbiertoAhora(byDay), byDay);
+        updateHeroEstadoLocal(estaAbiertoAhora(byDayEfectivo), byDayEfectivo);
     } else {
         updateHeroEstadoLocal(false);
     }
@@ -594,15 +625,16 @@ const loadHorarioAtencion = async () => {
 
     const mostrarSoloHoy = !!proximo;
     const diaHoy = DIA_HOY_NAMES[new Date().getDay()];
-    let ordenados = ORDEN_DIAS.filter((d) => byDay[d] && byDay[d].length > 0);
-    if (mostrarSoloHoy && byDay[diaHoy] && byDay[diaHoy].length > 0) {
+    const byDayHabitual = byDay || {};
+    let ordenados = ORDEN_DIAS.filter((d) => byDayHabitual[d] && byDayHabitual[d].length > 0);
+    if (mostrarSoloHoy && byDayHabitual[diaHoy] && byDayHabitual[diaHoy].length > 0) {
         ordenados = [diaHoy];
     } else if (mostrarSoloHoy) {
         ordenados = [];
     }
     const tituloRegular = mostrarSoloHoy ? '<div class="horario-regular-titulo">Horario habitual de atención</div>' : '';
     const fragmentos = ordenados.map((dia) => {
-        const rangos = byDay[dia].map((r) => `<span class="horario-rango${r === "CERRADO" ? " horario-cerrado" : ""}">${r}</span>`).join("");
+        const rangos = byDayHabitual[dia].map((r) => `<span class="horario-rango${r === "CERRADO" ? " horario-cerrado" : ""}">${r}</span>`).join("");
         return `<div class="horario-dia"><div class="horario-dia-col"><span class="horario-dia-nombre">${dia}</span></div><div class="horario-horarios-col">${rangos}</div></div>`;
     });
     listEl.innerHTML = tituloRegular + fragmentos.join("");

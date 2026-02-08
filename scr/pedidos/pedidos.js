@@ -103,16 +103,36 @@ async function enviarPedido() {
     window.location.href = esReserva ? "../confirmacion/confirmacion.html?reserva=1" : "../confirmacion/confirmacion.html";
 }
 
+function puedeEnviarPedido() {
+    const payload = leerPedidoMenu();
+    if (!payload || !Array.isArray(payload.items) || payload.items.length === 0) return false;
+    const nombre = document.getElementById("cust-name")?.value?.trim() || "";
+    const whatsapp = document.getElementById("cust-phone")?.value?.trim() || "";
+    const direccion = document.getElementById("cust-address")?.value?.trim() || "";
+    return nombre.length > 0 && whatsapp.length > 0 && direccion.length > 0;
+}
+
+function updateBotonEnviar() {
+    const btn = document.getElementById("boton-enviar-whatsapp");
+    if (btn) btn.disabled = !puedeEnviarPedido();
+}
+
 function renderResumenMenu() {
     const container = document.getElementById("resumen-menu");
     const list = document.getElementById("resumen-menu-items");
     const subtotalEl = document.getElementById("resumen-menu-subtotal");
     const envioEl = document.getElementById("resumen-menu-envio");
     const totalEl = document.getElementById("resumen-menu-total");
-    if (!container || !list || !subtotalEl || !envioEl || !totalEl) return;
+    if (!container || !list || !subtotalEl || !envioEl || !totalEl) {
+        updateBotonEnviar();
+        return;
+    }
 
     const payload = leerPedidoMenu();
-    if (!payload || !Array.isArray(payload.items) || payload.items.length === 0) return;
+    if (!payload || !Array.isArray(payload.items) || payload.items.length === 0) {
+        updateBotonEnviar();
+        return;
+    }
 
     list.innerHTML = payload.items.map((item) => {
         const isPromo = (item.category || "").toLowerCase().includes("promo");
@@ -136,6 +156,7 @@ function renderResumenMenu() {
     }
     totalEl.innerText = formatearMoneda(payload.total || 0);
     container.style.display = "block";
+    updateBotonEnviar();
 }
 
 async function cargarPie() {
@@ -175,7 +196,8 @@ async function initPedidos() {
     if (resumenNote) resumenNote.textContent = esReserva ? "Revisá tu reserva antes de enviarla por WhatsApp." : "Revisá tu pedido antes de enviarlo por WhatsApp.";
     if (esReserva && typeof window.HorarioAtencion !== "undefined") {
         try {
-            const byDay = await window.HorarioAtencion.fetchHorarioByDay();
+            const result = await window.HorarioAtencion.getHorarioEfectivo();
+            const byDay = result.byDay != null ? result.byDay : result;
             const estado = window.HorarioAtencion.getEstadoHorario(byDay);
             const elTiempo = document.getElementById("pedidos-banner-reserva-tiempo");
             if (elTiempo && estado.textoHastaApertura) {
@@ -186,6 +208,12 @@ async function initPedidos() {
     }
     renderResumenMenu();
     await cargarPie();
+    ["cust-name", "cust-phone", "cust-address"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener("input", updateBotonEnviar);
+        if (el) el.addEventListener("change", updateBotonEnviar);
+    });
+    updateBotonEnviar();
 }
 
 window.enviarPedido = enviarPedido;
