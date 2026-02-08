@@ -27,8 +27,8 @@
     function getReturnUrl(data) {
         const menu = (data && data.returnMenu) || "simple";
         return menu === "compuesto"
-            ? "../menu-compuesto/menu-compuesto.html"
-            : "../menu-simple/menu-simple.html";
+            ? "../menu/menu-compuesto/menu-compuesto.html"
+            : "../menu/menu-simple/menu-simple.html";
     }
 
     function showLoading(show) {

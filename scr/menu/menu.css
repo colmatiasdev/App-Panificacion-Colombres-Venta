@@ -358,7 +358,7 @@ body {
 .item p { margin: 0 0 6px; font-size: 0.85em; color: var(--gray-text); }
 .item-price { font-weight: 900; color: var(--primary-red); }
 
-/* Ítem tipo MENU-COMPUESTO: cabecera + lista de sub-items */
+/* Ítem tipo MENU-COMPUESTO */
 .item-compuesto {
     display: block;
     grid-template-columns: unset;

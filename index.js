@@ -8,11 +8,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (config.debug && Array.isArray(config.menuVersiones) && config.menuVersiones.length > 0 && container) {
         const label = (id) => id.split("-").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" ");
         container.innerHTML = config.menuVersiones.map((id) =>
-            `<a href="scr/${id}/${id}.html" class="btn-primary btn-menu-version">Realiza tu pedido (${label(id)})</a>`
+            `<a href="scr/menu/${id}/${id}.html" class="btn-primary btn-menu-version">Realiza tu pedido (${label(id)})</a>`
         ).join("");
     } else if (container) {
         const linkMenu = document.getElementById("link-menu-activo");
-        if (linkMenu) linkMenu.href = `scr/${menuActivo}/${menuActivo}.html`;
+        if (linkMenu) linkMenu.href = `scr/menu/${menuActivo}/${menuActivo}.html`;
     }
 
     const slides = Array.from(document.querySelectorAll(".slide"));
@@ -77,4 +77,275 @@ document.addEventListener("DOMContentLoaded", () => {
     if (pedidosYaLink) pedidosYaLink.href = window.APP_CONFIG?.plataformas?.pedidosYa || "#";
     const rappiLink = document.getElementById("rappi-link");
     if (rappiLink) rappiLink.href = window.APP_CONFIG?.plataformas?.rappi || "#";
+
+    loadHorarioAtencion();
 });
+
+/** Horario: orden de días para mostrar */
+const ORDEN_DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+/** Días por getDay() (0 = Domingo, 1 = Lunes, ...) */
+const DIA_HOY_NAMES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+
+/** Convierte nombre de día del sheet al canónico (ej. "Miercoles" → "Miércoles") para que coincida con ORDEN_DIAS. */
+const normalizarNombreDia = (nombre) => {
+    const n = normKey(nombre);
+    const found = ORDEN_DIAS.find((d) => normKey(d) === n);
+    return found != null ? found : nombre;
+};
+
+/** Normaliza para comparar nombres de columna (sin acentos, minúsculas). */
+const normKey = (s) =>
+    (s ?? "")
+        .toString()
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+const getValue = (row, candidates) => {
+    const key = Object.keys(row || {}).find((k) =>
+        candidates.some((c) => normKey(c) === normKey(k))
+    );
+    return key != null ? row[key] : "";
+};
+
+const pad2 = (n) => String(Number(n) ?? 0).padStart(2, "0");
+
+/** Formatea hora en 24h desde HORA y MINUTO (columnas de la hoja). */
+const formatHora24 = (hora, minuto) => {
+    const h = Math.min(23, Math.max(0, Number(hora) ?? 0));
+    const m = Math.min(59, Math.max(0, Number(minuto) ?? 0));
+    return `${pad2(h)}:${pad2(m)}`;
+};
+
+/** Timeout para peticiones al sheet (ms). Si no responde, no bloquear la página. */
+const FETCH_SHEET_TIMEOUT = 12000;
+
+/** Obtiene filas de cualquier hoja vía Apps Script (action=list&sheetName=...). */
+const fetchSheetData = async (sheetName) => {
+    const scriptUrl = window.APP_CONFIG?.appsScriptMenuUrl || window.APP_CONFIG?.appsScriptUrl || "";
+    if (!scriptUrl || !sheetName) return null;
+    const sep = scriptUrl.includes("?") ? "&" : "?";
+    const url = `${scriptUrl}${sep}action=list&sheetName=${encodeURIComponent(sheetName)}&_ts=${Date.now()}`;
+    try {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), FETCH_SHEET_TIMEOUT);
+        const response = await fetch(url, { cache: "no-store", signal: controller.signal });
+        clearTimeout(id);
+        if (!response.ok) return null;
+        const text = await response.text();
+        let data = null;
+        try { data = JSON.parse(text); } catch (e) { return null; }
+        if (!data || data.error || data.result === "error") return null;
+        if (Array.isArray(data)) return data;
+        if (data && Array.isArray(data.rows) && Array.isArray(data.headers)) {
+            const headers = data.headers.map((h) => (h != null ? String(h).trim() : ""));
+            return data.rows.map((row) => {
+                const obj = {};
+                headers.forEach((h, i) => { obj[h] = row[i]; });
+                return obj;
+            });
+        }
+        if (data && Array.isArray(data.data)) return data.data;
+    } catch (e) {
+        if (e.name !== "AbortError") console.warn("Sheet desde Apps Script:", sheetName, e);
+    }
+    return null;
+};
+
+const fetchHorarioData = async () => fetchSheetData(window.APP_CONFIG?.horarioSheetName || "HORARIO-TORO-RAPIDO");
+
+/** Agrupa filas por DIA y formatea franjas en 24h. Retorna { [dia]: ["07:00 - 15:00", "17:00 - 21:00"], ... } */
+const parseHorarioRows = (rows) => {
+    const byDay = {};
+    const candidatesDia = ["DIA", "Día", "DÍA", "dia", "day", "Day"];
+    const candidatesHoraDesde = ["HORA DESDE", "Hora Desde", "hora desde", "HoraDesde", "HORA DESDE ", "hora_desde"];
+    const candidatesMinDesde = ["MINUTO DESDE", "Minuto Desde", "minuto desde", "MinutoDesde", "MIN DESDE", "min_desde"];
+    const candidatesHoraHasta = ["HORA HASTA", "Hora Hasta", "hora hasta", "HoraHasta", "HORA HASTA ", "hora_hasta"];
+    const candidatesMinHasta = ["MINUTO HASTA", "Minuto Hasta", "minuto hasta", "MinutoHasta", "MIN HASTA", "min_hasta"];
+    (rows || []).forEach((row) => {
+        const diaRaw = String(getValue(row, candidatesDia)).trim();
+        if (!diaRaw) return;
+        const dia = normalizarNombreDia(diaRaw);
+        const hDesde = Number(getValue(row, candidatesHoraDesde)) || 0;
+        const mDesde = Number(getValue(row, candidatesMinDesde)) || 0;
+        const hHasta = Number(getValue(row, candidatesHoraHasta)) || 0;
+        const mHasta = Number(getValue(row, candidatesMinHasta)) || 0;
+        const cerrado = hDesde === 0 && mDesde === 0 && hHasta === 0 && mHasta === 0;
+        const rango = cerrado ? "CERRADO" : `${formatHora24(hDesde, mDesde)} - ${formatHora24(hHasta, mHasta)}`;
+        if (!byDay[dia]) byDay[dia] = [];
+        byDay[dia].push(rango);
+    });
+    return byDay;
+};
+
+/** Feriados: candidatos para columnas */
+const FERIADO_KEYS = {
+    fecha: ["FECHA", "fecha", "Fecha"],
+    fechaTexto: ["FECHA TEXTO", "Fecha texto", "FECHA VISIBLE", "FECHA MOSTRAR"],
+    nombre: ["NOMBRE", "nombre", "Nombre"],
+    seAtiende: ["SE_ATIENDE", "se atiende", "Se Atiende"],
+    horaDesde: ["HORA DESDE", "Hora Desde", "hora desde"],
+    minDesde: ["MINUTO DESDE", "Minuto Desde", "minuto desde"],
+    horaHasta: ["HORA HASTA", "Hora Hasta", "hora hasta"],
+    minHasta: ["MINUTO HASTA", "Minuto Hasta", "minuto hasta"],
+    motivo: ["MOTIVO", "motivo", "Motivo"]
+};
+
+const fetchFeriadosData = async () => fetchSheetData(window.APP_CONFIG?.feriadoSheetName || "FERIADO-TORO-RAPIDO");
+
+/** Parsea filas de feriados y devuelve array de { fechaStr, fecha (Date), fechaTexto, nombre, seAtiende, rango24h, motivo }. */
+const parseFeriadosRows = (rows) => {
+    const list = [];
+    (rows || []).forEach((row) => {
+        const fechaStr = String(getValue(row, FERIADO_KEYS.fecha)).trim();
+        if (!fechaStr) return;
+        const match = fechaStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        const fecha = match ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])) : null;
+        if (!fecha || Number.isNaN(fecha.getTime())) return;
+        const fechaTexto = String(getValue(row, FERIADO_KEYS.fechaTexto)).trim();
+        const nombre = String(getValue(row, FERIADO_KEYS.nombre)).trim() || "Feriado";
+        const seAtiendeRaw = String(getValue(row, FERIADO_KEYS.seAtiende)).trim().toUpperCase();
+        const seAtiende = seAtiendeRaw === "SI" || seAtiendeRaw === "SÍ";
+        const motivo = String(getValue(row, FERIADO_KEYS.motivo)).trim();
+        let rango24h = "";
+        if (seAtiende) {
+            const desde = formatHora24(getValue(row, FERIADO_KEYS.horaDesde), getValue(row, FERIADO_KEYS.minDesde));
+            const hasta = formatHora24(getValue(row, FERIADO_KEYS.horaHasta), getValue(row, FERIADO_KEYS.minHasta));
+            rango24h = `${desde} - ${hasta}`;
+        }
+        list.push({ fechaStr, fecha, fechaTexto, nombre, seAtiende, rango24h, motivo });
+    });
+    return list.sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
+};
+
+/**
+ * Devuelve el próximo feriado a mostrar según la fecha actual y SE_ATIENDE:
+ * - SE_ATIENDE = NO: visible desde 2 días antes de FECHA hasta el último minuto del día FECHA.
+ * - SE_ATIENDE = SI: visible solo el mismo día que FECHA.
+ */
+const getProximoFeriado = (feriados) => {
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    for (const f of feriados || []) {
+        const fechaDia = new Date(f.fecha);
+        fechaDia.setHours(0, 0, 0, 0);
+        if (f.seAtiende) {
+            // SI: solo el mismo día
+            if (hoy.getTime() === fechaDia.getTime()) return f;
+        } else {
+            // NO: desde N días antes hasta el día del feriado (inclusive); N = feriadoDiasAntes en config
+            const diasAntes = Math.max(0, Number(window.APP_CONFIG?.feriadoDiasAntes) || 2);
+            const fechaDesde = new Date(f.fecha);
+            fechaDesde.setDate(fechaDesde.getDate() - diasAntes);
+            fechaDesde.setHours(0, 0, 0, 0);
+            if (hoy.getTime() >= fechaDesde.getTime() && hoy.getTime() <= fechaDia.getTime()) return f;
+        }
+    }
+    return null;
+};
+
+/** Meses en español para fecha larga. */
+const MESES_ES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+/** Formatea fecha: "El día 24 de Diciembre del 2026". */
+const formatFechaCompleta = (date) => {
+    const d = date.getDate();
+    const mes = MESES_ES[date.getMonth()] || "";
+    const anio = date.getFullYear();
+    return `El día ${d} de ${mes} del ${anio}`;
+};
+
+/** Convierte rango 24h "21:00 - 02:30" a "21:00 hs hasta las 02:30 hs". */
+const formatHorarioLeyenda = (rango24h) => {
+    if (!rango24h) return "";
+    const parts = String(rango24h).split(/\s*-\s*/).map((p) => p.trim());
+    if (parts.length >= 2) return `${parts[0]} hs hasta las ${parts[1]} hs`;
+    return rango24h;
+};
+
+const loadHorarioAtencion = async () => {
+    const wrap = document.getElementById("horario-atencion-wrap");
+    const loadingEl = document.getElementById("horario-loading");
+    const listEl = document.getElementById("horario-list");
+    const fallbackEl = document.getElementById("horario-fallback");
+    const proximoFeriadoEl = document.getElementById("horario-proximo-feriado");
+    if (!wrap) return;
+
+    const hideLoadingShowFallback = () => {
+        if (loadingEl) loadingEl.style.display = "none";
+        if (fallbackEl) fallbackEl.style.display = "block";
+        if (listEl) listEl.style.display = "none";
+    };
+
+    const scriptUrl = window.APP_CONFIG?.appsScriptMenuUrl || window.APP_CONFIG?.appsScriptUrl || "";
+    if (!scriptUrl) {
+        hideLoadingShowFallback();
+        return;
+    }
+
+    const timeoutMs = 8000;
+    const safetyTimeout = setTimeout(hideLoadingShowFallback, timeoutMs);
+
+    let rawHorario = null;
+    let rawFeriados = null;
+    try {
+        const [h, f] = await Promise.all([fetchHorarioData(), fetchFeriadosData()]);
+        rawHorario = h;
+        rawFeriados = f;
+    } catch (err) {
+        console.warn("Error cargando horarios/feriados:", err);
+    } finally {
+        clearTimeout(safetyTimeout);
+        if (loadingEl) loadingEl.style.display = "none";
+    }
+
+    const feriados = parseFeriadosRows(rawFeriados);
+    const proximo = getProximoFeriado(feriados);
+    if (proximo && proximoFeriadoEl) {
+        const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        const titulo = proximo.seAtiende ? "ABIERTO" : "CERRADO";
+        const fechaFormateada = formatFechaCompleta(proximo.fecha);
+        const nombreTexto = proximo.nombre ? esc(proximo.nombre) : "";
+        let contenido = `<div class="horario-proximo-feriado-titulo horario-feriado-${proximo.seAtiende ? "abierto" : "cerrado"}">${titulo}</div>`;
+        contenido += `<div class="horario-proximo-feriado-dia">${esc(fechaFormateada)}</div>`;
+        contenido += `<div class="horario-proximo-feriado-nombre">${nombreTexto || "—"}</div>`;
+        if (proximo.seAtiende) {
+            const horarioLeyenda = formatHorarioLeyenda(proximo.rango24h);
+            if (horarioLeyenda) contenido += `<div class="horario-proximo-feriado-leyenda-label">Horario de atención</div><div class="horario-proximo-feriado-horario">${esc(horarioLeyenda)}</div>`;
+        }
+        if (proximo.motivo) contenido += `<div class="horario-proximo-feriado-motivo">${esc(proximo.motivo)}</div>`;
+        proximoFeriadoEl.innerHTML = contenido;
+        proximoFeriadoEl.style.display = "block";
+    } else if (proximoFeriadoEl) {
+        proximoFeriadoEl.style.display = "none";
+    }
+
+    const byDay = parseHorarioRows(rawHorario);
+    const diasConDatos = Object.keys(byDay).filter((d) => byDay[d].length > 0);
+
+    if (diasConDatos.length === 0) {
+        if (fallbackEl) {
+            fallbackEl.style.display = "block";
+            listEl.style.display = "none";
+        }
+        return;
+    }
+
+    const mostrarSoloHoy = !!proximo;
+    const diaHoy = DIA_HOY_NAMES[new Date().getDay()];
+    let ordenados = ORDEN_DIAS.filter((d) => byDay[d] && byDay[d].length > 0);
+    if (mostrarSoloHoy && byDay[diaHoy] && byDay[diaHoy].length > 0) {
+        ordenados = [diaHoy];
+    } else if (mostrarSoloHoy) {
+        ordenados = [];
+    }
+    const tituloRegular = mostrarSoloHoy ? '<div class="horario-regular-titulo">Horario habitual de atención</div>' : '';
+    const fragmentos = ordenados.map((dia) => {
+        const rangos = byDay[dia].map((r) => `<span class="horario-rango${r === "CERRADO" ? " horario-cerrado" : ""}">${r}</span>`).join("");
+        return `<div class="horario-dia"><div class="horario-dia-col"><span class="horario-dia-nombre">${dia}</span></div><div class="horario-horarios-col">${rangos}</div></div>`;
+    });
+    listEl.innerHTML = tituloRegular + fragmentos.join("");
+    listEl.style.display = "block";
+    if (fallbackEl) fallbackEl.style.display = "none";
+};

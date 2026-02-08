@@ -23,12 +23,17 @@
 
     <div class="hero-overlay">
         <div class="hero-content">
+            <div class="hero-abierto">
+                <i class="fa-solid fa-store"></i>
+                <span class="hero-abierto-texto">Estamos atendiendo</span>
+                <span class="hero-abierto-badge">Local ABIERTO</span>
+            </div>
             <span class="brand-badge"><i class="fa-solid fa-bolt"></i> Toro Rápido</span>
             <h1>Sabor que golpea fuerte</h1>
             <p>Las mejores burgers y sándwiches de Tucumán, directo a tu puerta.</p>
             <div class="hero-btns">
                 <div id="hero-btns-menu">
-                    <a id="link-menu-activo" href="scr/menu-simple/menu-simple.html" class="btn-primary">Realiza tu pedido</a>
+                    <a id="link-menu-activo" href="scr/menu/menu-simple/menu-simple.html" class="btn-primary">Realiza tu pedido</a>
                 </div>
                 <a href="#info" class="btn-secondary">Conocenos</a>
             </div>
@@ -85,11 +90,16 @@
     </div>
 </section>
 
-<section class="social-section">
+<section class="social-section" id="seccion-horario">
     <div class="social-container">
         <div class="social-icon"><i class="fa-solid fa-clock"></i></div>
         <div class="social-title">Horario de atención</div>
-        <div class="footer-meta">Todos los días de 21:00 a 01:30 hs (incluidos feriados).</div>
+        <div class="horario-atencion-wrap" id="horario-atencion-wrap">
+            <div class="horario-loading" id="horario-loading">Cargando horarios...</div>
+            <div class="horario-proximo-feriado" id="horario-proximo-feriado" style="display:none;"></div>
+            <div class="horario-list" id="horario-list" style="display:none;"></div>
+            <div class="horario-fallback footer-meta" id="horario-fallback" style="display:none;">Todos los días de 21:00 a 01:30 hs (incluidos feriados).</div>
+        </div>
     </div>
 </section>
 
