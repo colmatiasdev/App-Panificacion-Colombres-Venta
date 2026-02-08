@@ -19,10 +19,14 @@ window.APP_CONFIG = {
     appsScriptUrl: "https://script.google.com/macros/s/AKfycbzllzUCk1UqUV08XINHmy6Omvcl6JZ8_jRYY8k1WS2N_Kgnyec_mEp9CdVUdhrafC_B/exec",
     appsScriptMenuUrl: "https://script.google.com/macros/s/AKfycbwcAg7xpg1sHsnkEmY5gYEm8eeyi4qNEaptNtLogpTyYsRKcU4-tCgF5wRyvSYbsEIhYQ/exec",
     menuSimpleSheetName: "menu-toro-rapido-web-simple",
-    /** Hoja del mismo Sheet para menú compuesto (columnas: orden, idmenu-normal, idproducto, Categoria, Producto, Descripcion, Precio Actual, etc.) */
+    /** Hoja del mismo Sheet para menú compuesto. Columnas: orden, idmenu-unico, Tipo Menu, idmenu-variable, idproducto, Categoria, Producto, Descripcion Producto, Precio Actual, Precio Regular, Monto Descuento, Porcentaje Descuento, Mostar Descuento, Imagen, Es Destacado, Producto Agotado, Stock, Habilitado */
     menuCompuestoSheetName: "menu-toro-rapido-web-compuesto",
     /** URL CSV de la hoja menu-toro-rapido-web-compuesto (mismo libro, otro gid). Opcional; si no está, se usa solo Apps Script. */
     googleSheetUrlMenuCompuesto: "",
+    /** Hoja de detalle del menú compuesto. Columnas: idmenu-compuesto-detalle, idmenu-variable, idproducto, Cantidad, Producto, Precio Unitario Actual, Precio Total Actual, Imagen, Es Destacado, Producto Agotado, Stock, Habilitado. idmenu-variable relaciona con la misma columna de menu-toro-rapido-web-compuesto. */
+    menuCompuestoDetalleSheetName: "menu-compuesto-detalle",
+    /** URL CSV de la hoja menu-compuesto-detalle (opcional). Si no está, se usa solo Apps Script. */
+    googleSheetUrlMenuCompuestoDetalle: "",
     costoEnvioBase: 1500,
     montoMinimoEnvioGratis: 25000
 };

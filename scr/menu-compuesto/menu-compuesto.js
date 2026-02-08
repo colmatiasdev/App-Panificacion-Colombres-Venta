@@ -1,7 +1,16 @@
 const URL_CSV = window.APP_CONFIG?.googleSheetUrlMenuCompuesto || window.APP_CONFIG?.googleSheetUrl || "";
 const MENU_SCRIPT_URL = window.APP_CONFIG?.appsScriptMenuUrl || "";
 const MENU_SHEET_NAME = window.APP_CONFIG?.menuCompuestoSheetName || "menu-toro-rapido-web-compuesto";
+const MENU_DETALLE_SHEET_NAME = window.APP_CONFIG?.menuCompuestoDetalleSheetName || "menu-compuesto-detalle";
+const URL_CSV_DETALLE = window.APP_CONFIG?.googleSheetUrlMenuCompuestoDetalle || "";
 const PLACEHOLDER_IMAGE = "https://via.placeholder.com/160x120?text=Toro";
+
+/** Valores de Tipo Menu que indican ítem con sub-items desde menu-compuesto-detalle */
+const TIPO_MENU_COMPUESTO = ["MENU-COMPUESTO", "MENU-COMPUE"];
+const isTipoMenuCompuesto = (value) => {
+    const v = (value ?? "").toString().trim().toUpperCase().replace(/\s/g, "");
+    return TIPO_MENU_COMPUESTO.some((t) => v === t.replace(/\s/g, ""));
+};
 
 const sampleMenuData = [
     {
@@ -148,6 +157,78 @@ const rowsToObjects = (headers, rows) => rows.map((row) => {
     return obj;
 });
 
+/** Parsea filas de detalle (objetos con nombres de columna) y devuelve Map<idmenuVariable, subItem[]> */
+const parseDetalleRows = (rows) => {
+    const getVal = (row, keys) => {
+        const k = keys.find((key) => row[key] !== undefined && row[key] !== "");
+        return k ? row[k] : "";
+    };
+    const byId = new Map();
+    rows.forEach((row) => {
+        const idVar = cleanText(getVal(row, ["idmenu-variable", "idmenuvariable", "idmenu variable"]));
+        if (!idVar) return;
+        const enabled = parseEnabled(getVal(row, ["Habilitado", "habilitado", "activo", "visible"]));
+        if (!enabled) return;
+        const agotado = getVal(row, ["Producto Agotado", "productoagotado", "Agotado"]);
+        const stock = getVal(row, ["Stock", "stock"]);
+        const available = parseAvailability(agotado, stock);
+        const sub = {
+            id: cleanText(getVal(row, ["idmenu-compuesto-detalle", "idproducto", "id", "codigo"])),
+            name: cleanText(getVal(row, ["Producto", "producto", "Nombre"])),
+            quantity: Number.parseFloat(cleanText(getVal(row, ["Cantidad", "cantidad"]))) || 1,
+            priceUnit: parsePrice(getVal(row, ["Precio Unitario Actual", "Precio unitario actual", "preciounitario"])),
+            priceTotal: parsePrice(getVal(row, ["Precio Total Actual", "Precio total actual", "preciototal"])),
+            img: cleanText(getVal(row, ["Imagen", "imagen", "img"])) || PLACEHOLDER_IMAGE,
+            available
+        };
+        if (!sub.name) return;
+        if (!byId.has(idVar)) byId.set(idVar, []);
+        byId.get(idVar).push(sub);
+    });
+    return byId;
+};
+
+/** Parsea CSV de detalle y devuelve Map<idmenuVariable, subItem[]> */
+const parseDetalleCsv = (csvText) => {
+    const rows = parseCsv(csvText);
+    if (rows.length < 2) return new Map();
+    const headers = rows.shift().map((h) => normalizeKey(h));
+    const findIdx = (candidates) => headers.findIndex((h) => candidates.includes(h));
+    const idxIdVar = findIdx(["idmenuvariable", "idmenu-variable", "idmenuvariable"]);
+    const idxName = findIdx(["producto", "nombre", "product"]);
+    const idxCant = findIdx(["cantidad"]);
+    const idxPriceUnit = findIdx(["preciounitarioactual", "preciounitario", "precio unitario"]);
+    const idxPriceTotal = findIdx(["preciototalactual", "preciototal", "precio total"]);
+    const idxImg = findIdx(["imagen", "img"]);
+    const idxAgotado = findIdx(["productoagotado", "agotado"]);
+    const idxStock = findIdx(["stock"]);
+    const idxEnabled = findIdx(["habilitado", "activo"]);
+    const idxId = findIdx(["idmenucompuestodetalle", "idproducto", "id", "codigo"]);
+    if (idxIdVar === -1 || idxName === -1) return new Map();
+    const byId = new Map();
+    rows.forEach((row) => {
+        const idVar = cleanText(row[idxIdVar]);
+        if (!idVar) return;
+        if (idxEnabled !== -1 && !parseEnabled(row[idxEnabled])) return;
+        const agotado = idxAgotado === -1 ? "" : row[idxAgotado];
+        const stock = idxStock === -1 ? "" : row[idxStock];
+        const available = parseAvailability(agotado, stock);
+        const sub = {
+            id: idxId === -1 ? "" : cleanText(row[idxId]),
+            name: cleanText(row[idxName]),
+            quantity: idxCant === -1 ? 1 : Number.parseFloat(cleanText(row[idxCant])) || 1,
+            priceUnit: idxPriceUnit === -1 ? 0 : parsePrice(row[idxPriceUnit]),
+            priceTotal: idxPriceTotal === -1 ? 0 : parsePrice(row[idxPriceTotal]),
+            img: idxImg === -1 ? "" : cleanText(row[idxImg]) || PLACEHOLDER_IMAGE,
+            available
+        };
+        if (!sub.name) return;
+        if (!byId.has(idVar)) byId.set(idVar, []);
+        byId.get(idVar).push(sub);
+    });
+    return byId;
+};
+
 const mapRowsToMenu = (rows) => {
     const getValue = (row, candidates) => {
         const found = candidates.find((key) => row[key] !== undefined);
@@ -159,17 +240,19 @@ const mapRowsToMenu = (rows) => {
         const category = cleanText(getValue(row, ["Categoria", "categoria", "Category", "category", "cat", "rubro", "tipo"])) || "Otros";
         const name = cleanText(getValue(row, ["Producto", "producto", "Nombre", "nombre", "item", "titulo"]));
         if (!name) return;
-        const desc = cleanText(getValue(row, ["Descripcion", "descripcion", "desc", "detalle", "detalleproducto"]));
+        const desc = cleanText(getValue(row, ["Descripcion Producto", "Descripcion", "descripcion", "desc", "detalle", "detalleproducto"]));
         const price = parsePrice(getValue(row, ["Precio Actual", "Precio actual", "precioactual", "Precio", "precio", "price", "valor", "importe", "costo"]));
         const img = cleanText(getValue(row, ["Imagen", "imagen", "img", "image", "foto", "url", "urlimagen", "imagenurl"]));
         const agotadoValue = getValue(row, ["Producto Agotado", "productoagotado", "Agotado", "agotado"]);
-        const stockValue = getValue(row, ["stock", "Stock"]);
+        const stockValue = getValue(row, ["Stock", "stock"]);
         const available = parseAvailability(agotadoValue, stockValue);
-        const rawId = cleanText(getValue(row, ["idproducto", "IdProducto", "idmenu-normal", "idmenunormal", "ID", "id", "codigo", "sku"]));
+        const rawId = cleanText(getValue(row, ["idproducto", "IdProducto", "idmenu-unico", "idmenu-variable", "idmenuunico", "idmenuvariable", "ID", "id", "codigo", "sku"]));
         const orderValue = cleanText(getValue(row, ["orden", "Orden", "order", "posicion", "position"]));
         const order = orderValue === "" ? Number.POSITIVE_INFINITY : Number.parseFloat(orderValue);
         const enabledValue = getValue(row, ["Habilitado", "habilitado", "activo", "visible", "mostrar"]);
         const enabled = parseEnabled(enabledValue);
+        const tipoMenu = cleanText(getValue(row, ["Tipo Menu", "tipomenu", "tipo menu", "tipo"]));
+        const idmenuVariable = cleanText(getValue(row, ["idmenu-variable", "idmenu variable", "idmenuvariable"]));
         const id = rawId || `${slugify(category)}-${index}`;
         if (!enabled) return;
 
@@ -181,7 +264,10 @@ const mapRowsToMenu = (rows) => {
             price,
             img: img || PLACEHOLDER_IMAGE,
             available,
-            order
+            order,
+            tipoMenu,
+            idmenuVariable,
+            subItems: []
         });
     });
 
@@ -203,14 +289,16 @@ const mapCsvToMenu = (csvText) => {
 
     const idxCategory = findIndex(["categoria", "categorias", "category", "cat", "rubro", "tipo"]);
     const idxName = findIndex(["producto", "nombre", "product", "name", "titulo", "item"]);
-    const idxDesc = findIndex(["descripcion", "desc", "detalle", "detalleproducto", "descripcionproducto"]);
+    const idxDesc = findIndex(["descripcionproducto", "descripcion", "desc", "detalle", "detalleproducto"]);
     const idxPrice = findIndex(["precioactual", "precio", "price", "valor", "importe", "costo"]);
     const idxImg = findIndex(["imagen", "img", "image", "foto", "url", "urlimagen", "imagenurl"]);
     const idxAgotado = findIndex(["productoagotado", "agotado"]);
     const idxStock = findIndex(["stock"]);
-    const idxId = findIndex(["idproducto", "idprod", "idmenunormal", "id", "codigo", "sku"]);
+    const idxId = findIndex(["idproducto", "idprod", "idmenuunico", "idmenuvariable", "idmenunormal", "id", "codigo", "sku"]);
     const idxOrder = findIndex(["orden", "order", "posicion", "position"]);
     const idxEnabled = findIndex(["habilitado", "activo", "visible", "mostrar"]);
+    const idxTipoMenu = findIndex(["tipomenu", "tipo"]);
+    const idxIdmenuVariable = findIndex(["idmenuvariable", "idmenu-variable", "idmenu variable"]);
 
     if (idxCategory === -1 || idxName === -1 || idxPrice === -1) {
         console.warn("Faltan columnas requeridas en el CSV: categoria, nombre y precio.");
@@ -235,6 +323,8 @@ const mapCsvToMenu = (csvText) => {
         const id = rawId || `${slugify(category)}-${index}`;
         const enabledValue = idxEnabled === -1 ? "" : row[idxEnabled];
         const enabled = parseEnabled(enabledValue);
+        const tipoMenu = idxTipoMenu === -1 ? "" : cleanText(row[idxTipoMenu]);
+        const idmenuVariable = idxIdmenuVariable === -1 ? "" : cleanText(row[idxIdmenuVariable]);
 
         if (!enabled) return;
         if (!grouped.has(category)) grouped.set(category, []);
@@ -245,7 +335,10 @@ const mapCsvToMenu = (csvText) => {
             price,
             img: img || PLACEHOLDER_IMAGE,
             available,
-            order
+            order,
+            tipoMenu,
+            idmenuVariable,
+            subItems: []
         });
     });
 
@@ -256,6 +349,73 @@ const mapCsvToMenu = (csvText) => {
             return a.name.localeCompare(b.name, "es");
         })
     }));
+};
+
+const renderOneItem = (item) => {
+    const isCompuesto = item.subItems && item.subItems.length > 0;
+    const qtyBlock =
+        item.available === false
+            ? `<div class="qty-controls disabled">Producto no disponible</div>`
+            : `<div class="qty-controls is-empty" data-qty-wrapper="${item.id}">
+                <button class="qty-btn" data-action="remove" data-id="${item.id}">QUITAR</button>
+                <div id="qty-${item.id}" class="qty-value">0</div>
+                <button class="qty-btn" data-action="add" data-id="${item.id}">AGREGAR</button>
+              </div>`;
+    const maxInfo = `<div class="item-max-info" id="qty-info-${item.id}">
+        <b>¿Necesitás más de 10 unidades?</b> Seleccioná el máximo y avisamos por WhatsApp al confirmar. ¡Nosotros lo modificamos!
+    </div>`;
+
+    if (isCompuesto) {
+        const subList = item.subItems
+            .map(
+                (sub) => `
+            <li class="sub-item ${sub.available === false ? "sub-item-out" : ""}">
+                ${sub.quantity > 0 ? `<span class="sub-qty">${sub.quantity}x</span>` : ""}
+                <span class="sub-name">${sub.name}</span>
+                ${sub.priceTotal > 0 ? `<span class="sub-price">${formatV2(sub.priceTotal)}</span>` : sub.priceUnit > 0 ? `<span class="sub-price">${formatV2(sub.priceUnit)} u.</span>` : ""}
+            </li>`
+            )
+            .join("");
+        return `
+            <article class="item item-compuesto ${item.available === false ? "is-out" : ""}">
+                <div class="item-compuesto-header">
+                    <img src="${item.img || PLACEHOLDER_IMAGE}" alt="${item.name}">
+                    ${item.available === false ? `<span class="out-badge">AGOTADO</span>` : ""}
+                    <div class="item-compuesto-info">
+                        <h3>${item.name}</h3>
+                        ${item.desc ? `<p>${item.desc}</p>` : ""}
+                        <div class="item-price">${formatV2(item.price)}</div>
+                    </div>
+                    <div class="item-action">
+                        ${qtyBlock}
+                        <div class="qty-max-note" id="qty-note-${item.id}">Máximo 10 unidades</div>
+                    </div>
+                </div>
+                <div class="item-compuesto-detalle">
+                    <div class="sub-items-title">Incluye:</div>
+                    <ul class="sub-items-list">${subList}</ul>
+                </div>
+            </article>
+            ${maxInfo}
+        `;
+    }
+
+    return `
+            <article class="item ${item.available === false ? "is-out" : ""}">
+                <img src="${item.img || PLACEHOLDER_IMAGE}" alt="${item.name}">
+                ${item.available === false ? `<span class="out-badge">AGOTADO</span>` : ""}
+                <div>
+                    <h3>${item.name}</h3>
+                    <p>${item.desc}</p>
+                    <div class="item-price">${formatV2(item.price)}</div>
+                </div>
+                <div class="item-action">
+                    ${qtyBlock}
+                    <div class="qty-max-note" id="qty-note-${item.id}">Máximo 10 unidades</div>
+                </div>
+            </article>
+            ${maxInfo}
+        `;
 };
 
 const renderMenu = (menuData) => {
@@ -292,32 +452,7 @@ const renderMenu = (menuData) => {
         `;
 
         const list = sectionEl.querySelector(".items-list");
-        list.innerHTML = section.items.map((item) => `
-            <article class="item ${item.available === false ? "is-out" : ""}">
-                <img src="${item.img || PLACEHOLDER_IMAGE}" alt="${item.name}">
-                ${item.available === false ? `<span class="out-badge">AGOTADO</span>` : ""}
-                <div>
-                    <h3>${item.name}</h3>
-                    <p>${item.desc}</p>
-                    <div class="item-price">${formatV2(item.price)}</div>
-                </div>
-                <div class="item-action">
-                    ${
-                        item.available === false
-                            ? `<div class="qty-controls disabled">Producto no disponible</div>`
-                            : `<div class="qty-controls is-empty" data-qty-wrapper="${item.id}">
-                                <button class="qty-btn" data-action="remove" data-id="${item.id}">QUITAR</button>
-                                <div id="qty-${item.id}" class="qty-value">0</div>
-                                <button class="qty-btn" data-action="add" data-id="${item.id}">AGREGAR</button>
-                            </div>`
-                    }
-                    <div class="qty-max-note" id="qty-note-${item.id}">Máximo 10 unidades</div>
-                </div>
-            </article>
-            <div class="item-max-info" id="qty-info-${item.id}">
-                <b>¿Necesitás más de 10 unidades?</b> Seleccioná el máximo y avisamos por WhatsApp al confirmar. ¡Nosotros lo modificamos!
-            </div>
-        `).join("");
+        list.innerHTML = section.items.map((item) => renderOneItem(item)).join("");
 
         sectionsFragment.appendChild(sectionEl);
     });
@@ -351,7 +486,7 @@ const updateCartV2 = () => {
             const isPromo = (item.category || "").toLowerCase().includes("promo");
             const row = document.createElement("div");
             row.className = `checkout-item${isPromo ? " item-promo" : ""}`;
-            const label = `${item.qty}x ${item.name}${isPromo ? " [PROMO]" : ""}`;
+            const label = `${item.qty}x ${isPromo ? "[PROMO] " : ""}${item.name}`;
             row.innerHTML = `<span>${label}</span><strong>${formatV2(item.qty * item.price)}</strong>`;
             container.appendChild(row);
         });
@@ -598,11 +733,55 @@ const fetchMenuData = async () => {
     return fetchCsvMenuData();
 };
 
+/** Obtiene el mapa idmenu-variable -> subItems[] desde la hoja menu-compuesto-detalle */
+const fetchDetalleData = async () => {
+    if (MENU_SCRIPT_URL) {
+        try {
+            const sep = MENU_SCRIPT_URL.includes("?") ? "&" : "?";
+            const response = await fetch(`${MENU_SCRIPT_URL}${sep}action=list&sheetName=${encodeURIComponent(MENU_DETALLE_SHEET_NAME)}&_ts=${Date.now()}`, { cache: "no-store" });
+            if (!response.ok) return null;
+            const text = await response.text();
+            let payload = null;
+            try { payload = JSON.parse(text); } catch (e) {}
+            if (Array.isArray(payload)) return parseDetalleRows(payload);
+            if (payload && Array.isArray(payload.rows) && Array.isArray(payload.headers)) return parseDetalleRows(rowsToObjects(payload.headers, payload.rows));
+            if (payload && Array.isArray(payload.data)) return parseDetalleRows(payload.data);
+        } catch (error) {
+            console.warn("Detalle desde Apps Script:", error);
+        }
+    }
+    if (URL_CSV_DETALLE) {
+        try {
+            const sep = URL_CSV_DETALLE.includes("?") ? "&" : "?";
+            const response = await fetch(`${URL_CSV_DETALLE}${sep}_ts=${Date.now()}`, { cache: "no-store" });
+            if (!response.ok) return null;
+            return parseDetalleCsv(await response.text());
+        } catch (error) {
+            console.warn("Detalle desde CSV:", error);
+        }
+    }
+    return null;
+};
+
+/** Asigna subItems a cada ítem con Tipo Menu = MENU-COMPUESTO según idmenu-variable */
+const mergeDetalleIntoMenu = (menuSections, detalleMap) => {
+    if (!detalleMap || !menuSections) return;
+    menuSections.forEach((section) => {
+        (section.items || []).forEach((item) => {
+            if (isTipoMenuCompuesto(item.tipoMenu) && item.idmenuVariable) {
+                item.subItems = detalleMap.get(item.idmenuVariable) || [];
+            }
+        });
+    });
+};
+
 const loadMenuData = async () => {
     let usedFallback = false;
     try {
         const mapped = await fetchMenuData();
         if (mapped && mapped.length) {
+            const detalleMap = await fetchDetalleData();
+            mergeDetalleIntoMenu(mapped, detalleMap);
             window.menuData = mapped;
             return false;
         }
@@ -658,6 +837,8 @@ const initMenu = async () => {
         try {
             const refreshed = await fetchMenuData();
             if (refreshed && refreshed.length) {
+                const detalleMap = await fetchDetalleData();
+                mergeDetalleIntoMenu(refreshed, detalleMap);
                 const current = JSON.stringify(window.menuData || []);
                 const next = JSON.stringify(refreshed);
                 if (current !== next) {

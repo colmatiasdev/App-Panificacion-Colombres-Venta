@@ -329,6 +329,86 @@ body {
 .item h3 { margin: 0 0 6px; color: var(--dark-blue); }
 .item p { margin: 0 0 6px; font-size: 0.85em; color: var(--gray-text); }
 .item-price { font-weight: 900; color: var(--primary-red); }
+
+/* Ítem tipo MENU-COMPUESTO: cabecera + lista de sub-items */
+.item-compuesto {
+    display: block;
+    grid-template-columns: unset;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    background: white;
+}
+.item-compuesto .item-compuesto-header {
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    gap: 12px;
+    padding: 12px;
+    align-items: start;
+    background: var(--gray-bg);
+}
+.item-compuesto .item-compuesto-header img {
+    width: 90px;
+    height: 72px;
+}
+.item-compuesto .item-compuesto-info {
+    min-width: 0;
+}
+.item-compuesto .item-compuesto-info h3 {
+    margin: 0 0 4px;
+    font-size: 1rem;
+}
+.item-compuesto .item-compuesto-info p {
+    margin: 0 0 6px;
+    font-size: 0.8em;
+}
+.item-compuesto-detalle {
+    padding: 12px 12px 14px 12px;
+    border-top: 1px dashed #e2e8f0;
+    background: #fafafa;
+}
+.item-compuesto-detalle .sub-items-title {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--gray-text);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+.item-compuesto-detalle .sub-items-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.item-compuesto-detalle .sub-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: var(--dark-blue);
+}
+.item-compuesto-detalle .sub-item.sub-item-out {
+    opacity: 0.65;
+    text-decoration: line-through;
+}
+.item-compuesto-detalle .sub-qty {
+    font-weight: 700;
+    color: var(--primary-red);
+    min-width: 2ch;
+}
+.item-compuesto-detalle .sub-name {
+    flex: 1;
+}
+.item-compuesto-detalle .sub-price {
+    font-weight: 700;
+    color: var(--primary-red);
+    font-size: 0.8em;
+}
+
 .item-action {
     display: flex;
     flex-direction: column;
@@ -487,6 +567,8 @@ body {
 @media (max-width: 640px) {
     .item { grid-template-columns: 1fr; }
     .item img { width: 100%; height: 140px; }
+    .item-compuesto .item-compuesto-header { grid-template-columns: 1fr; }
+    .item-compuesto .item-compuesto-header img { width: 100%; height: 120px; object-fit: cover; }
     .item-action { align-items: flex-end; }
     .qty-controls { flex-wrap: wrap; }
 }

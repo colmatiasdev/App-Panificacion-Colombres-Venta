@@ -55,7 +55,7 @@ async function enviarPedido() {
 
     const itemsWhatsApp = payload.items.map((item) => {
         const isPromo = (item.category || "").toLowerCase().includes("promo");
-        return `* (x${item.qty}) ${isPromo ? "[PROMO] " : ""}${item.name} ${formatearMoneda(item.subtotal)}`;
+        return `* ${item.qty}x ${isPromo ? "[PROMO] " : ""}${item.name} ${formatearMoneda(item.subtotal)}`;
     }).join("\n");
 
     const subtotal = payload.subtotal || 0;
@@ -112,7 +112,7 @@ function renderResumenMenu() {
 
     list.innerHTML = payload.items.map((item) => {
         const isPromo = (item.category || "").toLowerCase().includes("promo");
-        const label = `${item.qty}x ${item.name}${isPromo ? " [PROMO]" : ""}`;
+        const label = `${item.qty}x ${isPromo ? "[PROMO] " : ""}${item.name}`;
         return `
             <div class="resumen-menu-item${isPromo ? " item-promo" : ""}">
                 <span>${label}</span>

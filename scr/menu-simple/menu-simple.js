@@ -351,7 +351,7 @@ const updateCartV2 = () => {
             const isPromo = (item.category || "").toLowerCase().includes("promo");
             const row = document.createElement("div");
             row.className = `checkout-item${isPromo ? " item-promo" : ""}`;
-            const label = `${item.qty}x ${item.name}${isPromo ? " [PROMO]" : ""}`;
+            const label = `${item.qty}x ${isPromo ? "[PROMO] " : ""}${item.name}`;
             row.innerHTML = `<span>${label}</span><strong>${formatV2(item.qty * item.price)}</strong>`;
             container.appendChild(row);
         });
