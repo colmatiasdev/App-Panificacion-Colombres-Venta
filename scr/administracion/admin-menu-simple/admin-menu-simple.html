@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Menú - Toro Rápido</title>
+    <title>Menú Simple - Toro Rápido</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="admin-menu.css">
+    <link rel="stylesheet" href="admin-menu-simple.css">
 </head>
 <body>
     <main class="admin-menu">
         <header class="admin-header">
             <div>
-                <h1>Administrador de Menú</h1>
-                <p>Datos cargados desde Google Sheets.</p>
+                <h1>Administrador de Menú Simple</h1>
+                <p>Datos del menú simple cargados desde Google Sheets.</p>
             </div>
             <a class="back-link" href="../dashboard.html">
                 <i class="fa-solid fa-chevron-left"></i> Volver al dashboard
@@ -21,14 +21,14 @@
         </header>
 
         <div class="admin-actions">
-            <a class="primary-btn" href="admin-menu-crear.html">
+            <a class="primary-btn" href="admin-menu-simple-crear.html">
                 <i class="fa-solid fa-circle-plus"></i> Agregar ítem
             </a>
         </div>
 
         <section class="admin-card">
             <div class="card-title">
-                <i class="fa-solid fa-list"></i> Items del menú
+                <i class="fa-solid fa-list"></i> Ítems del menú simple
             </div>
             <div class="table-wrap">
                 <table class="menu-table">
@@ -63,7 +63,7 @@
     </footer>
 
     <script src="../../../config.js"></script>
-    <script src="../admin-footer.js"></script>
-    <script src="admin-menu.js"></script>
+    <script src="../admin-common.js"></script>
+    <script src="admin-menu-simple.js"></script>
 </body>
 </html>

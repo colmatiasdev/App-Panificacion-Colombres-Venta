@@ -86,58 +86,6 @@ body {
     width: fit-content;
 }
 
-.login-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 18px;
-    padding: 22px;
-    max-width: 420px;
-    margin: 20px auto;
-    display: grid;
-    gap: 16px;
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-}
-.login-header {
-    text-align: center;
-    display: grid;
-    gap: 8px;
-}
-.login-header h1 {
-    margin: 0;
-    font-family: 'Bungee', cursive;
-    font-size: 1.4rem;
-}
-.login-header p {
-    margin: 0;
-    color: var(--toro-muted);
-    font-size: 0.9rem;
-}
-.login-form {
-    display: grid;
-    gap: 12px;
-}
-.field {
-    display: grid;
-    gap: 6px;
-    font-size: 0.85rem;
-    color: var(--toro-dark);
-    font-weight: 700;
-}
-.field input {
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    font-family: inherit;
-    font-size: 0.9rem;
-}
-.login-error {
-    display: none;
-    color: #b91c1c;
-    font-weight: 700;
-    font-size: 0.82rem;
-    text-align: center;
-}
-
 .back-home {
     display: inline-flex;
     align-items: center;
@@ -193,6 +141,4 @@ body {
     .dashboard { padding: 28px 12px 20px; }
     .dashboard-header h1 { font-size: 1.5rem; }
     .dash-card { padding: 16px; }
-    .login-card { margin: 10px auto; }
-    .login-header h1 { font-size: 1.2rem; }
 }

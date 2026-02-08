@@ -198,7 +198,7 @@ const initTableActions = () => {
                 alert("Este ítem no tiene ID. No se puede editar.");
                 return;
             }
-            window.location.href = `admin-menu-crear.html?id=${encodeURIComponent(item.id)}`;
+            window.location.href = `admin-menu-simple-crear.html?id=${encodeURIComponent(item.id)}`;
         }
 
         if (btn.dataset.action === "delete") {

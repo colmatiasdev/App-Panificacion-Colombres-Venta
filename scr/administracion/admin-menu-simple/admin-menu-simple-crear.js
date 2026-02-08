@@ -280,38 +280,28 @@ const initForm = () => {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-    const crearContainer = document.getElementById("admin-menu-crear");
-    fetch("admin-menu-crear-fragment.html")
-        .then((res) => res.ok ? res.text() : "")
-        .then((html) => {
-            if (crearContainer && html) crearContainer.innerHTML = html;
-            initForm();
-            setFormMode("create");
-            const id = new URLSearchParams(window.location.search).get("id");
-            if (id) {
-                loadForEdit(id);
-            } else {
-                setAutoId();
-                setAutoOrder();
-            }
-            const fileInput = document.getElementById("imagen-file");
-            const uploadBtn = document.getElementById("upload-image-btn");
-            const changeBtn = document.getElementById("change-image-btn");
-            uploadBtn?.addEventListener("click", () => fileInput?.click());
-            changeBtn?.addEventListener("click", () => fileInput?.click());
-            fileInput?.addEventListener("change", () => {
-                const file = fileInput.files?.[0];
-                if (!file) {
-                    setImagePreview("");
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = () => setImagePreview(reader.result);
-                reader.readAsDataURL(file);
-            });
-        })
-        .catch(() => {
-            initForm();
-            setFormMode("create");
-        });
+    initForm();
+    setFormMode("create");
+    const id = new URLSearchParams(window.location.search).get("id");
+    if (id) {
+        loadForEdit(id);
+    } else {
+        setAutoId();
+        setAutoOrder();
+    }
+    const fileInput = document.getElementById("imagen-file");
+    const uploadBtn = document.getElementById("upload-image-btn");
+    const changeBtn = document.getElementById("change-image-btn");
+    uploadBtn?.addEventListener("click", () => fileInput?.click());
+    changeBtn?.addEventListener("click", () => fileInput?.click());
+    fileInput?.addEventListener("change", () => {
+        const file = fileInput.files?.[0];
+        if (!file) {
+            setImagePreview("");
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => setImagePreview(reader.result);
+        reader.readAsDataURL(file);
+    });
 });
