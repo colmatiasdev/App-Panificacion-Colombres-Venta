@@ -31,6 +31,10 @@ window.APP_CONFIG = {
     feriadoSheetName: "FERIADO-TORO-RAPIDO",
     /** Días antes de la FECHA del feriado para mostrar la leyenda (solo cuando SE_ATIENDE = NO). Ej: 2 = desde 2 días antes hasta el día del feriado. */
     feriadoDiasAntes: 2,
+    /** Minutos antes de la hora de apertura para mostrar "El local abre a las HH:MM" cuando está cerrado. Ej: 20 = mostrar el aviso hasta 20 min antes de abrir. */
+    minutosAntesApertura: 20,
+    /** Minutos antes del cierre para alertar "¡Pedí antes del cierre!" cuando está abierto. Ej: 30 = avisar cuando falten 30 min o menos. */
+    minutosAntesCierre: 30,
     /** URL CSV de la hoja menu-compuesto-detalle (opcional). Si no está, se usa solo Apps Script. */
     googleSheetUrlMenuCompuestoDetalle: "",
     costoEnvioBase: 1500,

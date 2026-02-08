@@ -179,6 +179,145 @@ const parseHorarioRows = (rows) => {
     return byDay;
 };
 
+/** Parsea "HH:MM" a minutos desde medianoche (0-1439). */
+const parseHoraAMinutos = (str) => {
+    const m = String(str || "").trim().match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return null;
+    const h = Math.min(23, Math.max(0, Number(m[1]) || 0));
+    const min = Math.min(59, Math.max(0, Number(m[2]) || 0));
+    return h * 60 + min;
+};
+
+/** Indica si el local está abierto ahora según byDay (horario por día). Considera rangos overnight (ej. 21:00 - 01:30). */
+const estaAbiertoAhora = (byDay) => {
+    if (!byDay || typeof byDay !== "object") return false;
+    const now = new Date();
+    const diaHoy = DIA_HOY_NAMES[now.getDay()];
+    const rangos = byDay[diaHoy];
+    if (!rangos || !Array.isArray(rangos) || rangos.length === 0) return false;
+    const minutosAhora = now.getHours() * 60 + now.getMinutes();
+    for (const r of rangos) {
+        if (r === "CERRADO") continue;
+        const parts = String(r).split(/\s*-\s*/).map((p) => p.trim());
+        if (parts.length < 2) continue;
+        const desde = parseHoraAMinutos(parts[0]);
+        const hasta = parseHoraAMinutos(parts[1]);
+        if (desde == null || hasta == null) continue;
+        if (desde <= hasta) {
+            if (minutosAhora >= desde && minutosAhora < hasta) return true;
+        } else {
+            if (minutosAhora >= desde || minutosAhora < hasta) return true;
+        }
+    }
+    return false;
+};
+
+/** Devuelve la próxima hora de apertura (desde) según byDay: { minutosDesdeAhora, hora, minuto } o null. */
+const getProximaApertura = (byDay) => {
+    if (!byDay || typeof byDay !== "object") return null;
+    const now = new Date();
+    const diaIndex = now.getDay();
+    const minutosAhora = now.getHours() * 60 + now.getMinutes();
+
+    const collectDesde = (diaNombre) => {
+        const rangos = byDay[diaNombre];
+        if (!rangos || !Array.isArray(rangos)) return [];
+        const list = [];
+        for (const r of rangos) {
+            if (r === "CERRADO") continue;
+            const parts = String(r).split(/\s*-\s*/).map((p) => p.trim());
+            if (parts.length < 2) continue;
+            const desde = parseHoraAMinutos(parts[0]);
+            if (desde != null) list.push(desde);
+        }
+        return list;
+    };
+
+    for (let offset = 0; offset < 7; offset++) {
+        const idx = (diaIndex + offset) % 7;
+        const diaNombre = DIA_HOY_NAMES[idx];
+        const desdes = collectDesde(diaNombre);
+        if (desdes.length === 0) continue;
+        desdes.sort((a, b) => a - b);
+        if (offset === 0) {
+            for (const d of desdes) {
+                if (d > minutosAhora) {
+                    return { minutosDesdeAhora: d - minutosAhora, hora: Math.floor(d / 60), minuto: d % 60 };
+                }
+            }
+        } else {
+            const d = desdes[0];
+            const minutosHastaMedianoche = 24 * 60 - minutosAhora;
+            const minutosHastaApertura = minutosHastaMedianoche + (offset - 1) * 24 * 60 + d;
+            return { minutosDesdeAhora: minutosHastaApertura, hora: Math.floor(d / 60), minuto: d % 60 };
+        }
+    }
+    return null;
+};
+
+/** Devuelve minutos hasta el próximo cierre (hora "hasta" del rango actual) cuando el local está abierto, o null. */
+const getMinutosHastaCierre = (byDay) => {
+    if (!byDay || typeof byDay !== "object") return null;
+    const now = new Date();
+    const diaHoy = DIA_HOY_NAMES[now.getDay()];
+    const rangos = byDay[diaHoy];
+    if (!rangos || !Array.isArray(rangos)) return null;
+    const minutosAhora = now.getHours() * 60 + now.getMinutes();
+    for (const r of rangos) {
+        if (r === "CERRADO") continue;
+        const parts = String(r).split(/\s*-\s*/).map((p) => p.trim());
+        if (parts.length < 2) continue;
+        const desde = parseHoraAMinutos(parts[0]);
+        const hasta = parseHoraAMinutos(parts[1]);
+        if (desde == null || hasta == null) continue;
+        let dentro = false;
+        if (desde <= hasta) {
+            dentro = minutosAhora >= desde && minutosAhora < hasta;
+        } else {
+            dentro = minutosAhora >= desde || minutosAhora < hasta;
+        }
+        if (!dentro) continue;
+        if (desde <= hasta) {
+            return hasta - minutosAhora;
+        }
+        if (minutosAhora >= desde) {
+            return (24 * 60 - minutosAhora) + hasta;
+        }
+        return hasta - minutosAhora;
+    }
+    return null;
+};
+
+/** Actualiza el bloque hero "Local ABIERTO / CERRADO" según si estamos en horario de atención. Si está cerrado y hay byDay, puede mostrar "El local abre a las HH:MM" dentro del margen config. Si está abierto y faltan pocos min para cerrar, alerta para que realice el pedido. */
+const updateHeroEstadoLocal = (abierto, byDay) => {
+    const el = document.getElementById("hero-estado-local");
+    if (!el) return;
+    if (abierto) {
+        const minutosAntesCierre = Math.max(0, Number(window.APP_CONFIG?.minutosAntesCierre) || 30);
+        const minHastaCierre = byDay ? getMinutosHastaCierre(byDay) : null;
+        const alertaCierre = minHastaCierre != null && minHastaCierre <= minutosAntesCierre;
+        if (alertaCierre) {
+            el.setAttribute("data-estado", "abierto-pronto-cierre");
+            const texto = minHastaCierre <= 0 ? "Cerramos ya" : `¡Quedan ${minHastaCierre} min! Pedí antes del cierre`;
+            el.innerHTML = `<i class="fa-solid fa-exclamation-triangle"></i><span class="hero-abierto-texto">${texto}</span><span class="hero-abierto-badge hero-cierre-pronto-badge">Local ABIERTO</span>`;
+        } else {
+            el.setAttribute("data-estado", "abierto");
+            el.innerHTML = '<i class="fa-solid fa-store"></i><span class="hero-abierto-texto">Estamos atendiendo</span><span class="hero-abierto-badge">Local ABIERTO</span>';
+        }
+    } else {
+        el.setAttribute("data-estado", "cerrado");
+        const minutosAntes = Math.max(0, Number(window.APP_CONFIG?.minutosAntesApertura) || 20);
+        const proxima = byDay ? getProximaApertura(byDay) : null;
+        const mostrarAbreEn = proxima && proxima.minutosDesdeAhora <= minutosAntes;
+        const horaStr = proxima ? `${String(proxima.hora).padStart(2, "0")}:${String(proxima.minuto).padStart(2, "0")}` : "";
+        if (mostrarAbreEn) {
+            el.innerHTML = `<i class="fa-solid fa-clock"></i><span class="hero-abierto-texto">El local abre a las ${horaStr}</span><span class="hero-abierto-badge hero-cerrado-badge">Local CERRADO</span>`;
+        } else {
+            el.innerHTML = '<i class="fa-solid fa-store"></i><span class="hero-abierto-texto">Cerrado por el momento</span><span class="hero-abierto-badge hero-cerrado-badge">Local CERRADO</span>';
+        }
+    }
+};
+
 /** Feriados: candidatos para columnas */
 const FERIADO_KEYS = {
     fecha: ["FECHA", "fecha", "Fecha"],
@@ -276,11 +415,13 @@ const loadHorarioAtencion = async () => {
         if (loadingEl) loadingEl.style.display = "none";
         if (fallbackEl) fallbackEl.style.display = "block";
         if (listEl) listEl.style.display = "none";
+        updateHeroEstadoLocal(false);
     };
 
     const scriptUrl = window.APP_CONFIG?.appsScriptMenuUrl || window.APP_CONFIG?.appsScriptUrl || "";
     if (!scriptUrl) {
         hideLoadingShowFallback();
+        updateHeroEstadoLocal(false);
         return;
     }
 
@@ -295,6 +436,7 @@ const loadHorarioAtencion = async () => {
         rawFeriados = f;
     } catch (err) {
         console.warn("Error cargando horarios/feriados:", err);
+        updateHeroEstadoLocal(false);
     } finally {
         clearTimeout(safetyTimeout);
         if (loadingEl) loadingEl.style.display = "none";
@@ -323,6 +465,12 @@ const loadHorarioAtencion = async () => {
 
     const byDay = parseHorarioRows(rawHorario);
     const diasConDatos = Object.keys(byDay).filter((d) => byDay[d].length > 0);
+
+    if (rawHorario != null) {
+        updateHeroEstadoLocal(estaAbiertoAhora(byDay), byDay);
+    } else {
+        updateHeroEstadoLocal(false);
+    }
 
     if (diasConDatos.length === 0) {
         if (fallbackEl) {
