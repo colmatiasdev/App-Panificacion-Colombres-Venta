@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#0f172a">
-    <title>Toro Rápido - Inicio</title>
+    <meta name="theme-color" content="#EA580C">
+    <title>Panificación Colombres - Inicio</title>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="imagenes/portada/portada1.jpeg" as="image">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
     <link rel="stylesheet" href="scr/footer/footer.css">
     <script src="config.js" defer></script>
@@ -19,11 +18,7 @@
 <body>
 <section class="hero-carousel">
     <div class="carousel-container" id="carousel">
-        <div class="slide active" data-bg="imagenes/portada/portada1.jpeg" style="background-image: url('imagenes/portada/portada1.jpeg')"></div>
-        <div class="slide" data-bg="imagenes/portada/portada2.jpeg"></div>
-        <div class="slide" data-bg="imagenes/portada/portada3.jpeg"></div>
-        <div class="slide" data-bg="imagenes/portada/portada4.jpeg"></div>
-        <div class="slide" data-bg="imagenes/portada/portada5.jpeg"></div>
+        <!-- Las diapositivas se generan desde config.js (carruselCarpeta + carruselImagenes) -->
     </div>
 
     <div class="hero-overlay">
@@ -32,12 +27,12 @@
             <span class="hero-abierto-texto">Comprobando si estamos abiertos...</span>
         </div>
         <div class="hero-content">
-            <span class="brand-badge"><i class="fa-solid fa-bolt"></i> Toro Rápido</span>
-            <h1>Sabor que golpea fuerte</h1>
-            <p>Las mejores burgers y sándwiches de Tucumán, directo a tu puerta.</p>
+            <span class="brand-badge"><i class="fa-solid fa-bread-slice"></i> Panificación Colombres</span>
+            <h1>Panadería artesanal</h1>
+            <p>Productos elaborados con materia prima de calidad al mejor precio. Pan, facturas y más, recién hechos.</p>
             <div class="hero-btns">
                 <div id="hero-btns-menu">
-                    <a id="link-menu-activo" href="scr/menu/menu-simple/menu-simple.html" class="btn-primary">Realiza tu pedido</a>
+                    <a id="link-menu-activo" href="scr/menu/menu-simple/menu-simple.html" class="btn-primary">Ver menú y pedir</a>
                 </div>
                 <a href="#info" class="btn-secondary">Conocenos</a>
             </div>
@@ -48,8 +43,8 @@
 <section id="info" class="info-section-mensaje">
     <div class="info-container">
         <div class="info-header">
-            <h2>Pasión por la Comida Real</h2>
-            <p>En Toro Rápido no solo cocinamos, creamos experiencias de sabor con ingredientes frescos de Tucumán.</p>
+            <h2>Elaboración artesanal, el mejor precio y calidad</h2>
+            <p>En Panificación Colombres elaboramos cada producto con dedicación: pan, facturas y especialidades de panadería para que disfrutes en casa con la mejor relación precio-calidad.</p>
         </div>
     </div>
 </section>
@@ -102,7 +97,7 @@
             <div class="horario-loading" id="horario-loading">Cargando horarios...</div>
             <div class="horario-proximo-feriado" id="horario-proximo-feriado" style="display:none;"></div>
             <div class="horario-list" id="horario-list" style="display:none;"></div>
-            <div class="horario-fallback footer-meta" id="horario-fallback" style="display:none;">Todos los días de 21:00 a 01:30 hs (incluidos feriados).</div>
+            <div class="horario-fallback footer-meta" id="horario-fallback" style="display:none;">Consultá horarios por WhatsApp.</div>
         </div>
     </div>
 </section>
@@ -120,22 +115,22 @@
     <div class="social-container">
         <div class="social-icon"><i class="fa-solid fa-motorcycle"></i></div>
         <div class="social-title">Envío</div>
-        <div class="footer-meta">Solo delivery en San Miguel de Tucumán.</div>
+        <div class="footer-meta">Coordinamos el envío o retiro cuando confirmes tu pedido.</div>
     </div>
 </section>
 
 <section class="social-section">
     <div class="social-container">
-        <div class="social-icon"><i class="fa-solid fa-bolt-lightning"></i></div>
-        <div class="social-title">Entrega rápida</div>
-        <div class="footer-meta">Coordinamos el envío apenas confirmes.</div>
+        <div class="social-icon"><i class="fa-solid fa-wheat-awn"></i></div>
+        <div class="social-title">Productos frescos</div>
+        <div class="footer-meta">Elaboración artesanal y materia prima de calidad.</div>
     </div>
 </section>
 
 <footer class="index-footer">
     <div class="footer-container">
-        <h2 class="footer-title">Toro Rápido</h2>
-        <div class="footer-meta">San Miguel de Tucumán.</div>
+        <h2 class="footer-title">Panificación Colombres</h2>
+        <div class="footer-meta">Panadería artesanal · Mejor precio y calidad.</div>
         <div class="footer-meta">© 2026  Todos los derechos reservados.</div>
     </div>
 </footer>

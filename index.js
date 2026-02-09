@@ -2,6 +2,26 @@ document.addEventListener("DOMContentLoaded", () => {
     try { sessionStorage.removeItem("toro_pedido"); } catch (e) {}
 
     const config = window.APP_CONFIG || {};
+    const carouselEl = document.getElementById("carousel");
+    const carpeta = (config.carruselCarpeta || "imagenes/carrusel").replace(/\/$/, "");
+    const imagenes = Array.isArray(config.carruselImagenes) ? config.carruselImagenes : [];
+    if (carouselEl && imagenes.length > 0) {
+        carouselEl.innerHTML = "";
+        imagenes.forEach((nombre, i) => {
+            const url = `${carpeta}/${encodeURIComponent(nombre)}`;
+            const slide = document.createElement("div");
+            slide.className = "slide" + (i === 0 ? " active" : "");
+            slide.setAttribute("data-bg", url);
+            if (i === 0) slide.style.backgroundImage = `url('${url}')`;
+            carouselEl.appendChild(slide);
+        });
+        const preload = document.createElement("link");
+        preload.rel = "preload";
+        preload.href = carpeta + "/" + encodeURIComponent(imagenes[0]);
+        preload.as = "image";
+        document.head.appendChild(preload);
+    }
+
     const menuActivo = config.menuActivo || "menu-simple";
     const container = document.getElementById("hero-btns-menu");
 

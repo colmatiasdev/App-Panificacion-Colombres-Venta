@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const igLink = document.getElementById("ig-link");
     const igName = document.getElementById("ig-name");
     if (igLink) igLink.href = igConfig.url || "#";
-    if (igName) igName.textContent = igConfig.name ? `@${igConfig.name}` : "@ToroRapidoOk";
+    if (igName) igName.textContent = igConfig.name ? `@${igConfig.name}` : "@PanificacionColombres";
 
     const params = new URLSearchParams(window.location.search);
     const esReserva = params.get("reserva") === "1";

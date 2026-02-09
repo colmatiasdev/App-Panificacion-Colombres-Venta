@@ -1,4 +1,4 @@
-# Instalación del proyecto Toro Rápido
+# Instalación del proyecto Panificación Colombres
 
 Guía paso a paso para poner en marcha el sitio de pedidos con menú desde Google Sheets.
 

@@ -726,8 +726,6 @@ const initHorarioAlertaMenu = async () => {
         }
     }
 
-    const soloCatalogoMensaje = '<div class="menu-solo-catalogo-mensaje"><i class="fa-solid fa-store-slash"></i><span>MODO CATÁLOGO — Podrás realizar tu pedido cuando estemos abiertos</span></div>';
-
     const renderAlerta = (containerId) => {
         const wrap = document.getElementById(containerId);
         if (!wrap) return;
@@ -758,32 +756,6 @@ const initHorarioAlertaMenu = async () => {
     };
     renderAlerta("menu-horario-alerta-portada");
     renderAlerta("menu-horario-alerta-resumen");
-
-    const catalogoMensajeWrap = document.getElementById("menu-catalogo-mensaje-wrap");
-    if (catalogoMensajeWrap) {
-        if (window.__menuSoloCatalogo) {
-            catalogoMensajeWrap.innerHTML = soloCatalogoMensaje;
-            catalogoMensajeWrap.style.display = "";
-        } else {
-            catalogoMensajeWrap.innerHTML = "";
-            catalogoMensajeWrap.style.display = "none";
-        }
-    }
-
-    let soloCatalogoLeyenda = document.getElementById("menu-solo-catalogo-leyenda");
-    const checkoutTitle = cardResumen ? cardResumen.querySelector(".checkout-title") : null;
-    if (window.__menuSoloCatalogo && cardResumen && checkoutTitle) {
-        if (!soloCatalogoLeyenda) {
-            soloCatalogoLeyenda = document.createElement("div");
-            soloCatalogoLeyenda.id = "menu-solo-catalogo-leyenda";
-            soloCatalogoLeyenda.className = "menu-solo-catalogo-mensaje";
-            soloCatalogoLeyenda.innerHTML = '<i class="fa-solid fa-store-slash"></i><span>MODO CATÁLOGO — Podrás realizar tu pedido cuando estemos abiertos</span>';
-            cardResumen.insertBefore(soloCatalogoLeyenda, checkoutTitle);
-        }
-        soloCatalogoLeyenda.style.display = "";
-    } else if (soloCatalogoLeyenda) {
-        soloCatalogoLeyenda.style.display = "none";
-    }
 
     window.__menuPuedeReservar = estado.puedeReservar === true;
     applyReservaUI(estado);

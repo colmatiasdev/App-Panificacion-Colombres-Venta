@@ -1,6 +1,6 @@
 # Índice de documentación
 
-Documentación del proyecto **Toro Rápido** (web de pedidos y menú).
+Documentación del proyecto **Panificación Colombres** (web de pedidos y menú).
 
 ---
 

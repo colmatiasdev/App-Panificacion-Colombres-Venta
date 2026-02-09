@@ -1,10 +1,22 @@
 :root {
-    --primary-red: #e11d48;
-    --soft-red: #fff1f2;
-    --dark-blue: #0f172a;
+    /* Paleta del logo Panificación Colombres */
+    --logo-red: #DC2626;
+    --logo-orange: #EA580C;
+    --logo-yellow: #F59E0B;
+    --logo-teal: #0D9488;
+    --logo-green: #22C55E;
+    --logo-blue: #0EA5E9;
+    --logo-purple: #8B5CF6;
+    --logo-dark: #1F2937;
+    --logo-arc-warm: linear-gradient(90deg, var(--logo-red), var(--logo-orange), var(--logo-yellow));
+    --logo-arc-cool: linear-gradient(90deg, var(--logo-teal), var(--logo-green), var(--logo-blue), var(--logo-purple));
+    /* Compatibilidad */
+    --primary-red: var(--logo-red);
+    --soft-red: #fff7ed;
+    --dark-blue: var(--logo-dark);
     --gray-text: #64748b;
     --gray-bg: #f8fafc;
-    --toro-gold: #fbbf24;
+    --toro-gold: var(--logo-yellow);
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -43,8 +55,8 @@ body {
 
 .header-premium {
     position: relative;
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.5) 100%), 
-                url('https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80');
+    background: linear-gradient(160deg, rgba(220, 38, 38, 0.25) 0%, rgba(31, 41, 55, 0.65) 40%, rgba(13, 148, 136, 0.2) 70%, rgba(139, 92, 246, 0.25) 100%),
+                url('../../../imagenes/carrusel/Portada1.jpg');
     background-size: cover;
     background-position: center;
     padding: 24px 20px 32px;
@@ -85,18 +97,18 @@ body {
 .logo-circle {
     width: 72px;
     height: 72px;
-    background: var(--primary-red);
+    background: var(--logo-arc-warm);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 2.1rem;
-    box-shadow: 0 0 20px rgba(225, 29, 72, 0.5);
+    box-shadow: 0 0 24px rgba(234, 88, 12, 0.5);
     animation: pulse 2s infinite;
 }
 @keyframes pulse {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7); }
-    70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(225, 29, 72, 0); }
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.4); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(234, 88, 12, 0); }
     100% { transform: scale(1); }
 }
 .header-title {
@@ -108,7 +120,7 @@ body {
     line-height: 1;
 }
 .header-title span {
-    color: var(--primary-red);
+    color: #0EA5E9;
     display: block;
     font-size: 1.5rem;
     letter-spacing: 5px;
@@ -126,7 +138,7 @@ body {
     margin: 14px 0;
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
-.location-tag i { color: var(--primary-red); }
+.location-tag i { color: var(--logo-teal); }
 .keywords-flex {
     display: flex;
     justify-content: center;
@@ -145,7 +157,7 @@ body {
     gap: 6px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
-.badge-modern i { color: var(--primary-red); }
+.badge-modern i { color: var(--logo-orange); }
 
 .menu-horario-alerta-wrap {
     margin-top: 12px;
@@ -362,10 +374,10 @@ body {
     font-size: 0.95em;
     max-width: none;
     height: 40px;
-    background: linear-gradient(90deg, #ff5f7e, #e11d48);
+    background: var(--logo-arc-warm);
     color: #ffffff;
-    border: 1px solid rgba(225, 29, 72, 0.6);
-    box-shadow: 0 12px 24px rgba(225, 29, 72, 0.35);
+    border: 1px solid rgba(234, 88, 12, 0.6);
+    box-shadow: 0 12px 24px rgba(220, 38, 38, 0.35);
     border-radius: 999px;
     letter-spacing: 0.3px;
     gap: 8px;
@@ -373,7 +385,7 @@ body {
 .tab.active i { font-size: 0.9em; }
 .tab.active span { display: inline-block; }
 .tab.active.tab-promo {
-    background: linear-gradient(90deg, #f59e0b, #f97316);
+    background: linear-gradient(90deg, var(--logo-yellow), var(--logo-orange));
     border-color: rgba(245, 158, 11, 0.7);
     box-shadow: 0 12px 24px rgba(245, 158, 11, 0.35);
 }
@@ -403,14 +415,10 @@ body {
 .tab-promo {
     border: 1px solid rgba(251, 191, 36, 0.4);
 }
-.tab.active {
-    background: var(--primary-red);
-    color: white;
-}
 .tab.active-promo {
-    background: var(--toro-gold);
+    background: var(--logo-yellow);
     color: #7c2d12;
-    box-shadow: 0 6px 16px rgba(251, 191, 36, 0.35);
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.35);
 }
 
 .content {
@@ -437,7 +445,7 @@ body {
     font-weight: 800;
     font-size: 1.3rem;
     color: var(--dark-blue);
-    border-left: 6px solid var(--primary-red);
+    border-left: 6px solid var(--logo-orange);
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     margin-bottom: 20px;
     z-index: 10;
@@ -445,12 +453,12 @@ body {
 .section-title.title-promo {
     background: linear-gradient(90deg, #fffbeb 0%, #ffffff 100%);
     color: #92400e;
-    border-left: 6px solid #fbbf24;
+    border-left: 6px solid var(--logo-yellow);
 }
 .section-title.title-promo i {
-    color: #fbbf24;
+    color: var(--logo-yellow);
     margin-right: 10px;
-    filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.5));
+    filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.5));
 }
 .items-list { display: grid; gap: 12px; }
 .item {
@@ -868,7 +876,7 @@ body {
     width: 100%;
     height: 50px;
     border: none;
-    background: var(--primary-red);
+    background: var(--logo-arc-warm);
     color: white;
     border-radius: 14px;
     font-weight: 800;
@@ -877,11 +885,12 @@ body {
     gap: 10px;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 8px 24px rgba(220, 38, 38, 0.35);
 }
 .checkout-btn-reserva {
-    background: #ca8a04;
+    background: linear-gradient(90deg, var(--logo-yellow), var(--logo-orange));
     color: #1c1917;
-    box-shadow: 0 6px 20px rgba(202, 138, 4, 0.4);
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
 }
 .checkout-btn-reserva:hover {
     background: #a16207;

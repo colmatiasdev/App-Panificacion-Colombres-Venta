@@ -1,7 +1,10 @@
 :root {
     --footer-bg: #ffffff;
-    --footer-text: #0f172a;
+    --footer-text: #1F2937;
     --footer-muted: #64748b;
+    --logo-orange: #EA580C;
+    --logo-teal: #0D9488;
+    --logo-purple: #8B5CF6;
 }
 
 .pedido-pie {
@@ -9,7 +12,8 @@
     color: var(--footer-text);
     padding: 32px 16px 20px;
     font-family: 'Inter', system-ui, sans-serif;
-    border-top: 1px solid #e2e8f0;
+    border-top: 4px solid transparent;
+    border-image: linear-gradient(90deg, var(--logo-teal), var(--logo-green), var(--logo-blue), var(--logo-purple)) 1;
     margin-top: 20px;
 }
 
@@ -17,11 +21,11 @@
 
 .pie-title {
     text-align: center;
-    font-family: 'Bungee', cursive;
+    font-family: 'DM Serif Display', Georgia, serif;
     font-size: 1rem;
     margin-bottom: 16px;
     letter-spacing: 1px;
-    color: #0f172a;
+    color: var(--footer-text);
 }
 
 .pie-grid {
@@ -45,7 +49,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #e11d48;
+    color: var(--logo-orange);
 }
 
 .pie-item-center { text-align: center; }
@@ -58,7 +62,7 @@
 .pie-text { font-size: 0.82rem; color: var(--footer-muted); line-height: 1.5; }
 
 .pie-link {
-    color: #e11d48;
+    color: var(--logo-orange);
     text-decoration: none;
     font-weight: 700;
     font-size: 0.82rem;
