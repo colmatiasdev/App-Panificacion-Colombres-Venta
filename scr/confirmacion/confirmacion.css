@@ -8,6 +8,8 @@
     --gray-bg: #f8fafc;
 }
 
+* { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+html { -webkit-overflow-scrolling: touch; }
 body {
     font-family: 'Segoe UI', system-ui, sans-serif;
     background-color: #f1f5f9;
@@ -17,7 +19,10 @@ body {
     align-items: center;
     justify-content: center;
     min-height: 100vh;
+    min-height: 100dvh;
     padding: 20px;
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    touch-action: manipulation;
 }
 
 .status-container {

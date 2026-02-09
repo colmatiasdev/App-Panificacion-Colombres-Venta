@@ -4,14 +4,16 @@
     --toro-white: #ffffff;
 }
 
-* { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; -webkit-overflow-scrolling: touch; }
 body {
     margin: 0;
     font-family: 'Inter', system-ui, sans-serif;
     background: #ffffff;
     color: var(--toro-dark);
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    overflow-x: hidden;
 }
 
 .hero-carousel {

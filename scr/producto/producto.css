@@ -7,13 +7,16 @@
     --toro-gold: #fbbf24;
 }
 
-* { box-sizing: border-box; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { -webkit-overflow-scrolling: touch; }
 body {
     margin: 0;
     font-family: 'Inter', system-ui, sans-serif;
     background: #f1f5f9;
     color: #334155;
-    padding-bottom: 24px;
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+    touch-action: manipulation;
+    overflow-x: hidden;
 }
 
 .producto-header {

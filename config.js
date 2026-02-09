@@ -1,3 +1,6 @@
+/** Formato de moneda compartido en toda la app (es-AR). */
+window.formatMoneda = (valor) => `$ ${Number(valor).toLocaleString("es-AR")}`;
+
 window.APP_CONFIG = {
     // ========== GENERAL Y DEBUG ==========
     /** true: en la página principal (index) se muestran botones por cada versión de menú para pruebas. false: solo el menú activo. */

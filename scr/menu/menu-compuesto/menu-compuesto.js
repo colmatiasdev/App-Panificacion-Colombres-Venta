@@ -488,6 +488,7 @@ const initMenu = async () => {
     ]);
     bindHeaderActions();
     renderMenu(window.menuData);
+    if (tryRedirectToProductForOptions()) return;
     restoreCartFromStorage();
     try { applyPendingAddFromProduct(); } catch (e) {}
     updateCartV2();
@@ -497,6 +498,7 @@ const initMenu = async () => {
     const errorEl = document.getElementById("menu-error");
     if (errorEl) errorEl.style.display = usedFallback ? "flex" : "none";
     loadFooter();
+    if (tryRedirectToPedidosAfterAdd()) return;
     setTimeout(async () => {
         try {
             const refreshed = await fetchMenuData();

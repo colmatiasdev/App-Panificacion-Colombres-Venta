@@ -40,7 +40,34 @@ const freeFromV2 = Number(window.APP_CONFIG?.montoMinimoEnvioGratis) || 25000;
 let categoriesObserver = null;
 let scrollHandler = null;
 
-const formatV2 = (value) => `$ ${Number(value).toLocaleString("es-AR")}`;
+const formatV2 = typeof window.formatMoneda === "function" ? window.formatMoneda : (v) => `$ ${Number(v).toLocaleString("es-AR")}`;
+
+/** Convierte el carrito en array de ítems para payload de pedido (una sola fuente de verdad). */
+const cartToPayloadItems = () => Array.from(cartV2.values()).map((item) => ({
+    id: item.baseId || item.id,
+    cartKey: item.id,
+    name: item.name,
+    price: item.price,
+    qty: item.qty,
+    subtotal: item.qty * item.price,
+    category: item.category || "",
+    options: item.options || [],
+    requiresOptions: item.requiresOptions === true
+}));
+
+/** Arma el payload completo { createdAt, items, subtotal, delivery, total } desde el carrito. */
+const buildPayloadFromCart = () => {
+    const items = cartToPayloadItems();
+    const subtotalVal = items.reduce((acc, item) => acc + item.subtotal, 0);
+    const deliveryVal = subtotalVal > 0 && subtotalVal < freeFromV2 ? deliveryV2 : 0;
+    return {
+        createdAt: new Date().toISOString(),
+        items,
+        subtotal: subtotalVal,
+        delivery: deliveryVal,
+        total: subtotalVal + deliveryVal
+    };
+};
 
 /** Bloque HTML resumido de oferta para ítem del menú (móvil). Retorna "" si no hay oferta. */
 const getItemOfferBlock = (item) => {
@@ -253,25 +280,10 @@ const updateCartV2 = () => {
     document.getElementById("v2-total").textContent = formatV2(total);
 
     try {
-        const items = Array.from(cartV2.values()).map((item) => ({
-            id: item.baseId || item.id,
-            cartKey: item.id,
-            name: item.name,
-            price: item.price,
-            qty: item.qty,
-            subtotal: item.qty * item.price,
-            category: item.category || "",
-            options: item.options || []
-        }));
-        const subtotalVal = items.reduce((acc, item) => acc + item.subtotal, 0);
-        const deliveryVal = subtotalVal > 0 && subtotalVal < freeFromV2 ? deliveryV2 : 0;
-        sessionStorage.setItem("toro_pedido", JSON.stringify({
-            createdAt: new Date().toISOString(),
-            items,
-            subtotal: subtotalVal,
-            delivery: deliveryVal,
-            total: subtotalVal + deliveryVal
-        }));
+        const payload = buildPayloadFromCart();
+        sessionStorage.setItem("toro_pedido", JSON.stringify(payload));
+        const baseIds = [...new Set(payload.items.map((it) => it.id))];
+        baseIds.forEach((baseId) => updateQtyUI(baseId, getTotalQtyForProduct(baseId)));
     } catch (e) {}
 };
 
@@ -291,23 +303,43 @@ const getOptionsSignature = (options) => {
     return JSON.stringify(copy);
 };
 
+/** Suma la cantidad de todas las líneas del carrito que corresponden a este producto (con o sin opciones). */
+const getTotalQtyForProduct = (baseId) => {
+    let total = 0;
+    for (const entry of cartV2.values()) {
+        if ((entry.baseId || entry.id) === baseId) total += entry.qty || 0;
+    }
+    return total;
+};
+
+/** Devuelve la clave del carrito para este producto. Si hay varias líneas (ej. con distintas opciones), devuelve la primera. */
+const getCartKeyForProduct = (baseId) => {
+    if (cartV2.has(baseId)) return baseId;
+    for (const [key, entry] of cartV2.entries()) {
+        if ((entry.baseId || entry.id) === baseId) return key;
+    }
+    return null;
+};
+
 const addItemV2 = (id) => {
     const result = findItemById(id);
     if (!result || result.item.available === false) return;
     const { item, category } = result;
-    const current = cartV2.get(id) || { ...item, category, qty: 0 };
+    const hasRequiredOpciones = (item.opciones || []).some((g) => g.obligatorio);
+    const current = cartV2.get(id) || { ...item, category, qty: 0, requiresOptions: hasRequiredOpciones };
     if (current.qty >= MAX_QTY) return;
     current.qty += 1;
     cartV2.set(id, current);
-    updateQtyUI(id, current.qty);
+    updateQtyUI(id, getTotalQtyForProduct(id));
     updateCartV2();
 };
 
-/** Agrega al carrito un producto con opciones (desde la página producto). */
+/** Agrega al carrito un producto con opciones (desde la página producto). Si ya existía una línea sin opciones (solo baseId), se quita. */
 const addItemWithOptionsV2 = (baseId, qty, options) => {
     const result = findItemById(baseId);
     if (!result || result.item.available === false) return;
     const { item, category } = result;
+    if (cartV2.has(baseId)) cartV2.delete(baseId);
     const sig = getOptionsSignature(options);
     const cartKey = sig ? baseId + "|" + sig : baseId;
     const recargoTotal = (options || []).reduce((s, o) => s + (Number(o.recargo) || 0), 0);
@@ -324,35 +356,40 @@ const addItemWithOptionsV2 = (baseId, qty, options) => {
             price: unitPrice,
             qty: 0,
             category,
-            options: options || []
+            options: options || [],
+            requiresOptions: false
         };
     }
     const addQty = Math.min(MAX_QTY - current.qty, Math.max(1, qty || 1));
     if (addQty <= 0) return;
     current.qty += addQty;
     cartV2.set(cartKey, current);
-    updateQtyUI(baseId, (cartV2.get(baseId) || {}).qty || 0);
+    updateQtyUI(baseId, getTotalQtyForProduct(baseId));
     updateCartV2();
 };
 
 const removeItemV2 = (id) => {
-    const current = cartV2.get(id);
+    let cartKey = getCartKeyForProduct(id);
+    if (!cartKey) return;
+    const current = cartV2.get(cartKey);
     if (!current) return;
+    const baseId = current.baseId || cartKey;
     current.qty -= 1;
     if (current.qty <= 0) {
-        cartV2.delete(id);
-        updateQtyUI(id, 0);
+        cartV2.delete(cartKey);
     } else {
-        cartV2.set(id, current);
-        updateQtyUI(id, current.qty);
+        cartV2.set(cartKey, current);
     }
+    updateQtyUI(baseId, getTotalQtyForProduct(baseId));
     updateCartV2();
 };
 
 const removeItemLineV2 = (id) => {
     if (!cartV2.has(id)) return;
+    const current = cartV2.get(id);
+    const baseId = current.baseId || id;
     cartV2.delete(id);
-    updateQtyUI(id, 0);
+    updateQtyUI(baseId, getTotalQtyForProduct(baseId));
     updateCartV2();
 };
 
@@ -417,6 +454,56 @@ const APPLY_ADD_QTY_KEY = "toro_add_product_qty";
 const PRODUCTO_DETALLE_KEY = "toro_producto_detalle";
 
 const APPLY_OPTIONS_KEY = "toro_add_product_options";
+
+const PRODUCTO_BASE_REL = "../../producto/producto.html";
+const PEDIDOS_BASE_REL = "../../pedidos/pedidos.html";
+
+/** Si la URL tiene addOptions=ID, prepara el payload del producto y redirige a la página producto para elegir opciones. Retorna true si redirigió. */
+const tryRedirectToProductForOptions = () => {
+    const params = new URLSearchParams(window.location.search);
+    const addOptionsId = params.get("addOptions");
+    if (!addOptionsId || !window.menuData) return false;
+    const res = findItemById(addOptionsId);
+    if (!res || !res.item) return false;
+    const item = res.item;
+    const payload = {
+        item: {
+            id: item.id,
+            name: item.name,
+            desc: item.desc || "",
+            price: item.price,
+            img: item.img || "",
+            available: item.available,
+            subItems: item.subItems || [],
+            category: res.category,
+            priceRegular: item.priceRegular,
+            mostrarDescuento: item.mostrarDescuento,
+            porcentajeDescuento: item.porcentajeDescuento,
+            esDestacado: item.esDestacado,
+            opciones: item.opciones || []
+        },
+        category: res.category,
+        returnMenu: window.MENU_RETURN || "simple"
+    };
+    try {
+        sessionStorage.setItem(PRODUCTO_DETALLE_KEY, JSON.stringify(payload));
+    } catch (e) {}
+    const url = `${PRODUCTO_BASE_REL}?id=${encodeURIComponent(addOptionsId)}&return=pedidos`;
+    window.location.href = url;
+    return true;
+};
+
+/** Si la URL tiene return=pedidos, guarda el carrito en sessionStorage y redirige a la página de pedidos. Retorna true si redirigió. */
+const tryRedirectToPedidosAfterAdd = () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("return") !== "pedidos") return false;
+    try {
+        const payload = buildPayloadFromCart();
+        sessionStorage.setItem("toro_pedido", JSON.stringify(payload));
+        window.location.href = PEDIDOS_BASE_REL;
+    } catch (e) {}
+    return true;
+};
 
 /** Aplica el agregado desde la página producto (id + cantidad + opciones). Llamar al cargar el menú. */
 const applyPendingAddFromProduct = () => {
@@ -497,20 +584,7 @@ const initActionsV2 = () => {
             alert("Selecciona productos antes de realizar el pedido.");
             return;
         }
-        const items = Array.from(cartV2.values()).map((item) => ({
-            id: item.baseId || item.id,
-            cartKey: item.id,
-            name: item.name,
-            price: item.price,
-            qty: item.qty,
-            subtotal: item.qty * item.price,
-            category: item.category || "",
-            options: item.options || []
-        }));
-        const subtotal = items.reduce((acc, item) => acc + item.subtotal, 0);
-        const delivery = subtotal > 0 && subtotal < freeFromV2 ? deliveryV2 : 0;
-        const total = subtotal + delivery;
-        const payload = { createdAt: new Date().toISOString(), items, subtotal, delivery, total };
+        const payload = buildPayloadFromCart();
         const encoded = encodeURIComponent(JSON.stringify(payload));
         try { sessionStorage.setItem("toro_pedido", JSON.stringify(payload)); } catch (error) { console.warn(error); }
         const reservaParam = window.__menuPuedeReservar ? "&reserva=1" : "";
@@ -763,10 +837,11 @@ const restoreCartFromStorage = () => {
             if (qty <= 0) return;
             const cartKey = entry.cartKey || entry.id;
             const cartEntry = entry.options && entry.options.length > 0
-                ? { ...result.item, id: cartKey, baseId: baseId, name: entry.name, price: entry.price, qty, category: entry.category || result.category, options: entry.options }
-                : { ...result.item, id: cartKey, category: result.category, qty };
+                ? { ...result.item, id: cartKey, baseId: baseId, name: entry.name, price: entry.price, qty, category: entry.category || result.category, options: entry.options, requiresOptions: false }
+                : { ...result.item, id: cartKey, category: result.category, qty, requiresOptions: entry.requiresOptions === true };
             cartV2.set(cartKey, cartEntry);
-            if (cartKey === baseId) updateQtyUI(baseId, qty);
         });
+        const baseIds = [...new Set(payload.items.map((e) => e.baseId || e.id))];
+        baseIds.forEach((baseId) => updateQtyUI(baseId, getTotalQtyForProduct(baseId)));
     } catch (error) { console.warn(error); }
 };
