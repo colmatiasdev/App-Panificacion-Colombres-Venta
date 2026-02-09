@@ -29,13 +29,25 @@ const mapRowsToMenu = (rows) => {
         const enabledValue = getValue(row, ["habilitado", "Habilitado", "activo", "visible", "mostrar"]);
         const enabled = parseEnabled(enabledValue);
         const id = rawId || `${slugify(category)}-${index}`;
+        const priceRegular = parsePrice(getValue(row, ["Precio Regular", "precio regular", "precioregular"])) || 0;
+        const mostrarDescuentoRaw = String(getValue(row, ["Mostrar Descuento", "Mostar Descuento", "mostrar descuento", "mostar descuento", "mostrardescuento", "mostardescuento"])).trim().toUpperCase();
+        const mostrarDescuento = mostrarDescuentoRaw === "SI" || mostrarDescuentoRaw === "SÍ";
+        const porcentajeDescuentoRaw = getValue(row, ["Porcentaje Descuento", "porcentaje descuento", "porcentajedescuento"]);
+        const porcentajeDescuento = porcentajeDescuentoRaw !== "" && porcentajeDescuentoRaw !== undefined ? Number(porcentajeDescuentoRaw) : null;
+        const esDestacadoRaw = String(getValue(row, ["Es Destacado", "es destacado", "esdestacado"])).trim().toUpperCase();
+        const esDestacado = esDestacadoRaw === "SI" || esDestacadoRaw === "SÍ";
         if (!enabled) return;
         if (!grouped.has(category)) grouped.set(category, []);
         grouped.get(category).push({
             id, name, desc, price,
             img: img || PLACEHOLDER_IMAGE,
             available,
-            order
+            order,
+            category,
+            priceRegular,
+            mostrarDescuento,
+            porcentajeDescuento,
+            esDestacado
         });
     });
     return Array.from(grouped.entries()).map(([category, items]) => ({
@@ -62,6 +74,10 @@ const mapCsvToMenu = (csvText) => {
     const idxId = findIndex(["idproducto", "idprod", "id", "codigo", "sku"]);
     const idxOrder = findIndex(["orden", "order", "posicion", "position"]);
     const idxEnabled = findIndex(["habilitado", "activo", "visible", "mostrar"]);
+    const idxPrecioRegular = findIndex(["precioregular", "precio regular"]);
+    const idxMostrarDescuento = findIndex(["mostrardescuento", "mostardescuento", "mostrar descuento", "mostar descuento"]);
+    const idxPorcentajeDescuento = findIndex(["porcentajedescuento", "porcentaje descuento"]);
+    const idxEsDestacado = findIndex(["esdestacado", "es destacado"]);
     if (idxCategory === -1 || idxName === -1 || idxPrice === -1) return null;
     const grouped = new Map();
     rows.forEach((row, index) => {
@@ -80,13 +96,24 @@ const mapCsvToMenu = (csvText) => {
         const id = rawId || `${slugify(category)}-${index}`;
         const enabledValue = idxEnabled === -1 ? "" : row[idxEnabled];
         const enabled = parseEnabled(enabledValue);
+        const priceRegular = idxPrecioRegular === -1 ? 0 : parsePrice(row[idxPrecioRegular]);
+        const mostrarDescuentoRaw = idxMostrarDescuento === -1 ? "" : String(row[idxMostrarDescuento] ?? "").trim().toUpperCase();
+        const mostrarDescuento = mostrarDescuentoRaw === "SI" || mostrarDescuentoRaw === "SÍ";
+        const porcentajeDescuentoVal = idxPorcentajeDescuento === -1 ? null : (row[idxPorcentajeDescuento] !== "" && row[idxPorcentajeDescuento] !== undefined ? Number(row[idxPorcentajeDescuento]) : null);
+        const esDestacadoRaw = idxEsDestacado === -1 ? "" : String(row[idxEsDestacado] ?? "").trim().toUpperCase();
+        const esDestacado = esDestacadoRaw === "SI" || esDestacadoRaw === "SÍ";
         if (!enabled) return;
         if (!grouped.has(category)) grouped.set(category, []);
         grouped.get(category).push({
             id, name, desc, price,
             img: img || PLACEHOLDER_IMAGE,
             available,
-            order
+            order,
+            category,
+            priceRegular,
+            mostrarDescuento,
+            porcentajeDescuento: porcentajeDescuentoVal,
+            esDestacado
         });
     });
     return Array.from(grouped.entries()).map(([category, items]) => ({
@@ -189,11 +216,12 @@ const renderMenu = (menuData) => {
                     <img src="${item.img || PLACEHOLDER_IMAGE}" alt="${item.name}" class="item-img" loading="lazy" decoding="async" onerror="this.onerror=null;this.classList.add('img-error');this.src=window.__MENU_IMG_FALLBACK">
                 </a>
                 ${item.available === false ? `<span class="out-badge">AGOTADO</span>` : ""}
-                <div>
-                    <h3>${item.name}</h3>
-                    <p>${item.desc}</p>
-                    <a href="${PRODUCTO_BASE}?id=${encodeURIComponent(item.id)}" class="link-ver-detalle producto-ver-detalle" data-id="${encodeURIComponent(item.id)}"><i class="fa-solid fa-up-right-from-square"></i> Ver detalle</a>
-                    <div class="item-price">${formatV2(item.price)}</div>
+                <div class="item-info">
+                    <a href="${PRODUCTO_BASE}?id=${encodeURIComponent(item.id)}" class="item-info-link producto-ver-detalle" data-id="${encodeURIComponent(item.id)}" aria-label="Ver detalle de ${item.name.replace(/"/g, "&quot;")}">
+                        <h3 class="item-name">${item.name}</h3>
+                        <p class="item-desc">${item.desc}</p>
+                        <div class="item-price">${formatV2(item.price)}</div>
+                    </a>
                 </div>
                 <div class="item-action">
                     ${item.available === false
@@ -228,14 +256,7 @@ const initMenu = async () => {
     const usedFallback = await loadMenuData();
     renderMenu(window.menuData);
     restoreCartFromStorage();
-    try {
-        const addId = sessionStorage.getItem(APPLY_ADD_KEY);
-        if (addId) {
-            sessionStorage.removeItem(APPLY_ADD_KEY);
-            const res = findItemById(addId);
-            if (res && res.item.available !== false) addItemV2(addId);
-        }
-    } catch (e) {}
+    try { applyPendingAddFromProduct(); } catch (e) {}
     updateCartV2();
     initCategoriesV2();
     initActionsV2();

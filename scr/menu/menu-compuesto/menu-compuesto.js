@@ -109,6 +109,14 @@ const mapRowsToMenu = (rows) => {
         const tipoMenu = cleanText(getValue(row, ["Tipo Menu", "tipomenu", "tipo menu", "tipo"]));
         const idmenuVariable = cleanText(getValue(row, ["idmenu-variable", "idmenu variable", "idmenuvariable"]));
         const id = rawId || `${slugify(category)}-${index}`;
+        const priceRegular = parsePrice(getValue(row, ["Precio Regular", "precio regular", "precioregular"])) || 0;
+        // Columna "Mostar Descuento" en hoja menu-toro-rapido-web-compuesto: SI = mostrar oferta, NO = no mostrar
+        const mostrarDescuentoRaw = String(getValue(row, ["Mostar Descuento", "Mostrar Descuento", "mostrar descuento", "mostar descuento", "mostrardescuento", "mostardescuento"])).trim().toUpperCase();
+        const mostrarDescuento = mostrarDescuentoRaw === "SI" || mostrarDescuentoRaw === "SÍ";
+        const porcentajeDescuentoRaw = getValue(row, ["Porcentaje Descuento", "porcentaje descuento", "porcentajedescuento"]);
+        const porcentajeDescuento = porcentajeDescuentoRaw !== "" && porcentajeDescuentoRaw !== undefined ? Number(porcentajeDescuentoRaw) : null;
+        const esDestacadoRaw = String(getValue(row, ["Es Destacado", "es destacado", "esdestacado"])).trim().toUpperCase();
+        const esDestacado = esDestacadoRaw === "SI" || esDestacadoRaw === "SÍ";
         if (!enabled) return;
         if (!grouped.has(category)) grouped.set(category, []);
         grouped.get(category).push({
@@ -118,7 +126,12 @@ const mapRowsToMenu = (rows) => {
             order,
             tipoMenu,
             idmenuVariable,
-            subItems: []
+            subItems: [],
+            category,
+            priceRegular,
+            mostrarDescuento,
+            porcentajeDescuento,
+            esDestacado
         });
     });
     return Array.from(grouped.entries()).map(([category, items]) => ({
@@ -147,6 +160,11 @@ const mapCsvToMenu = (csvText) => {
     const idxEnabled = findIndex(["habilitado", "activo", "visible", "mostrar"]);
     const idxTipoMenu = findIndex(["tipomenu", "tipo"]);
     const idxIdmenuVariable = findIndex(["idmenuvariable", "idmenu-variable", "idmenu variable"]);
+    const idxPrecioRegular = findIndex(["precioregular", "precio regular"]);
+    // CSV: cabecera normalizada (ej. "Mostar Descuento" → "mostardescuento")
+    const idxMostrarDescuento = findIndex(["mostardescuento", "mostrardescuento", "mostar descuento", "mostrar descuento"]);
+    const idxPorcentajeDescuento = findIndex(["porcentajedescuento", "porcentaje descuento"]);
+    const idxEsDestacado = findIndex(["esdestacado", "es destacado"]);
     if (idxCategory === -1 || idxName === -1 || idxPrice === -1) return null;
     const grouped = new Map();
     rows.forEach((row, index) => {
@@ -167,6 +185,12 @@ const mapCsvToMenu = (csvText) => {
         const enabled = parseEnabled(enabledValue);
         const tipoMenu = idxTipoMenu === -1 ? "" : cleanText(row[idxTipoMenu]);
         const idmenuVariable = idxIdmenuVariable === -1 ? "" : cleanText(row[idxIdmenuVariable]);
+        const priceRegular = idxPrecioRegular === -1 ? 0 : parsePrice(row[idxPrecioRegular]);
+        const mostrarDescuentoRaw = idxMostrarDescuento === -1 ? "" : String(row[idxMostrarDescuento] ?? "").trim().toUpperCase();
+        const mostrarDescuento = mostrarDescuentoRaw === "SI" || mostrarDescuentoRaw === "SÍ";
+        const porcentajeDescuentoVal = idxPorcentajeDescuento === -1 ? null : (row[idxPorcentajeDescuento] !== "" && row[idxPorcentajeDescuento] !== undefined ? Number(row[idxPorcentajeDescuento]) : null);
+        const esDestacadoRaw = idxEsDestacado === -1 ? "" : String(row[idxEsDestacado] ?? "").trim().toUpperCase();
+        const esDestacado = esDestacadoRaw === "SI" || esDestacadoRaw === "SÍ";
         if (!enabled) return;
         if (!grouped.has(category)) grouped.set(category, []);
         grouped.get(category).push({
@@ -176,7 +200,12 @@ const mapCsvToMenu = (csvText) => {
             order,
             tipoMenu,
             idmenuVariable,
-            subItems: []
+            subItems: [],
+            category,
+            priceRegular,
+            mostrarDescuento,
+            porcentajeDescuento: porcentajeDescuentoVal,
+            esDestacado
         });
     });
     return Array.from(grouped.entries()).map(([category, items]) => ({
@@ -323,10 +352,11 @@ const renderOneItem = (item) => {
                     </a>
                     ${item.available === false ? `<span class="out-badge">AGOTADO</span>` : ""}
                     <div class="item-compuesto-info">
-                        <h3>${item.name}</h3>
-                        ${item.desc ? `<p>${item.desc}</p>` : ""}
-                        <a href="${PRODUCTO_BASE}?id=${encodeURIComponent(item.id)}" class="link-ver-detalle producto-ver-detalle" data-id="${encodeURIComponent(item.id)}"><i class="fa-solid fa-up-right-from-square"></i> Ver detalle</a>
-                        <div class="item-price">${formatV2(item.price)}</div>
+                        <a href="${PRODUCTO_BASE}?id=${encodeURIComponent(item.id)}" class="item-info-link producto-ver-detalle" data-id="${encodeURIComponent(item.id)}" aria-label="Ver detalle de ${(item.name || "").replace(/"/g, "&quot;")}">
+                            <h3 class="item-name">${item.name}</h3>
+                            ${item.desc ? `<p class="item-desc">${item.desc}</p>` : ""}
+                            <div class="item-price">${formatV2(item.price)}</div>
+                        </a>
                     </div>
                     <div class="item-action">
                         ${qtyBlock}
@@ -348,11 +378,12 @@ const renderOneItem = (item) => {
                     <img src="${item.img || PLACEHOLDER_IMAGE}" alt="${item.name}" class="item-img" loading="lazy" decoding="async" onerror="this.onerror=null;this.classList.add('img-error');this.src=window.__MENU_IMG_FALLBACK">
                 </a>
                 ${item.available === false ? `<span class="out-badge">AGOTADO</span>` : ""}
-                <div>
-                    <h3>${item.name}</h3>
-                    <p>${item.desc}</p>
-                    <a href="${PRODUCTO_BASE}?id=${encodeURIComponent(item.id)}" class="link-ver-detalle producto-ver-detalle" data-id="${encodeURIComponent(item.id)}"><i class="fa-solid fa-up-right-from-square"></i> Ver detalle</a>
-                    <div class="item-price">${formatV2(item.price)}</div>
+                <div class="item-info">
+                    <a href="${PRODUCTO_BASE}?id=${encodeURIComponent(item.id)}" class="item-info-link producto-ver-detalle" data-id="${encodeURIComponent(item.id)}" aria-label="Ver detalle de ${(item.name || "").replace(/"/g, "&quot;")}">
+                        <h3 class="item-name">${item.name}</h3>
+                        <p class="item-desc">${item.desc}</p>
+                        <div class="item-price">${formatV2(item.price)}</div>
+                    </a>
                 </div>
                 <div class="item-action">
                     ${qtyBlock}
@@ -409,14 +440,7 @@ const initMenu = async () => {
     const usedFallback = await loadMenuData();
     renderMenu(window.menuData);
     restoreCartFromStorage();
-    try {
-        const addId = sessionStorage.getItem(APPLY_ADD_KEY);
-        if (addId) {
-            sessionStorage.removeItem(APPLY_ADD_KEY);
-            const res = findItemById(addId);
-            if (res && res.item.available !== false) addItemV2(addId);
-        }
-    } catch (e) {}
+    try { applyPendingAddFromProduct(); } catch (e) {}
     updateCartV2();
     initCategoriesV2();
     initActionsV2();

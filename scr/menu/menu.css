@@ -452,17 +452,6 @@ body {
     background: #e2e8f0;
     display: block;
 }
-.item .link-ver-detalle {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.8rem;
-    color: var(--primary-red);
-    font-weight: 700;
-    text-decoration: none;
-    margin-bottom: 6px;
-}
-.item .link-ver-detalle:hover { text-decoration: underline; }
 .item img.img-error,
 .item .item-img.img-error {
     object-fit: contain;
@@ -489,6 +478,20 @@ body {
 .item h3 { margin: 0 0 6px; color: var(--dark-blue); }
 .item p { margin: 0 0 6px; font-size: 0.85em; color: var(--gray-text); }
 .item-price { font-weight: 900; color: var(--primary-red); }
+.item-info { position: relative; }
+.item-info-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+}
+.item-info-link:hover { text-decoration: none; }
+.item-info-link .item-name,
+.item-info-link h3 { color: var(--dark-blue); }
+.item-info-link .item-desc,
+.item-info-link p { color: var(--gray-text); }
+.item-info-link .item-price { color: var(--primary-red); }
 
 /* Ítem tipo MENU-COMPUESTO */
 .item-compuesto {
@@ -628,6 +631,13 @@ body {
 }
 .qty-btn:hover {
     background: var(--soft-red);
+}
+.qty-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.qty-btn:disabled:hover {
+    background: #f8fafc;
 }
 .qty-value {
     min-width: 18px;
