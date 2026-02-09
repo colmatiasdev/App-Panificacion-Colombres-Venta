@@ -9,7 +9,7 @@
     const ADD_QTY_KEY = "toro_add_product_qty";
     const MAX_QTY = Number(window.APP_CONFIG?.maxProductos) || 10;
 
-    const formatPrice = (value) => `$ ${Number(value).toLocaleString("es-AR")}`;
+    const formatPrice = typeof window.formatMoneda === "function" ? window.formatMoneda : (v) => `$ ${Number(v).toLocaleString("es-AR")}`;
     const escapeHtml = (s) => {
         if (s == null) return "";
         const div = document.createElement("div");
@@ -56,7 +56,10 @@
 
     function renderProduct(data) {
         const item = data.item;
-        const returnUrl = getReturnUrl(data);
+        let returnUrl = getReturnUrl(data);
+        if (getUrlParam("return") === "pedidos") {
+            returnUrl = returnUrl + (returnUrl.includes("?") ? "&" : "?") + "return=pedidos";
+        }
         const category = item.category || data.category || "";
 
         const categoriaWrap = document.getElementById("producto-categoria-wrap");

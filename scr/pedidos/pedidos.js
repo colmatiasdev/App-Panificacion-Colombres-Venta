@@ -3,28 +3,38 @@ const URL_APPS_SCRIPT = window.APP_CONFIG?.appsScriptPedidosUrl || "https://scri
 const COSTO_ENVIO_BASE = Number(window.APP_CONFIG?.costoEnvioBase) || 1500;
 const MONTO_MINIMO_ENVIO_GRATIS = Number(window.APP_CONFIG?.montoMinimoEnvioGratis) || 25000;
 
-function formatearMoneda(valor) {
-    return `$ ${Number(valor).toLocaleString("es-AR")}`;
-}
+const formatearMoneda = typeof window.formatMoneda === "function" ? window.formatMoneda : (v) => `$ ${Number(v).toLocaleString("es-AR")}`;
 
 function leerPedidoMenu() {
-    const params = new URLSearchParams(window.location.search);
     let payload = null;
-    const raw = params.get("pedido");
-    if (raw) {
-        try {
-            payload = JSON.parse(decodeURIComponent(raw));
-        } catch (e) {
-            console.error(e);
+    try {
+        const stored = sessionStorage.getItem("toro_pedido");
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0) {
+                payload = parsed;
+            }
         }
+    } catch (e) {
+        console.error(e);
     }
     if (!payload) {
-        try {
-            const stored = sessionStorage.getItem("toro_pedido");
-            if (stored) payload = JSON.parse(stored);
-        } catch (e) {
-            console.error(e);
+        const params = new URLSearchParams(window.location.search);
+        const raw = params.get("pedido");
+        if (raw) {
+            try {
+                payload = JSON.parse(decodeURIComponent(raw));
+            } catch (e) {
+                console.error(e);
+            }
         }
+    }
+    if (payload && Array.isArray(payload.items)) {
+        payload.items = payload.items.map((it) => ({
+            ...it,
+            requiresOptions: it.requiresOptions === true || String(it.requiresOptions).toLowerCase() === "true",
+            options: Array.isArray(it.options) ? it.options : (it.options ? [it.options] : [])
+        }));
     }
     return payload;
 }
@@ -41,6 +51,10 @@ async function enviarPedido() {
     const payload = leerPedidoMenu();
     if (!payload || !Array.isArray(payload.items) || payload.items.length === 0) {
         alert("❌ No encontramos productos del menú. Volvé a seleccionar tu pedido.");
+        return;
+    }
+    if (tieneItemsSinOpcionesObligatorias(payload)) {
+        alert("⚠️ Algunos productos requieren elegir opciones antes de enviar. Usá «Elegir opciones» en cada ítem del resumen.");
         return;
     }
 
@@ -103,9 +117,15 @@ async function enviarPedido() {
     window.location.href = esReserva ? "../confirmacion/confirmacion.html?reserva=1" : "../confirmacion/confirmacion.html";
 }
 
+function tieneItemsSinOpcionesObligatorias(payload) {
+    if (!payload || !Array.isArray(payload.items)) return false;
+    return payload.items.some((item) => item.requiresOptions === true && (!item.options || item.options.length === 0));
+}
+
 function puedeEnviarPedido() {
     const payload = leerPedidoMenu();
     if (!payload || !Array.isArray(payload.items) || payload.items.length === 0) return false;
+    if (tieneItemsSinOpcionesObligatorias(payload)) return false;
     const nombre = document.getElementById("cust-name")?.value?.trim() || "";
     const whatsapp = document.getElementById("cust-phone")?.value?.trim() || "";
     const direccion = document.getElementById("cust-address")?.value?.trim() || "";
@@ -134,16 +154,37 @@ function renderResumenMenu() {
         return;
     }
 
+    const menuActivo = window.APP_CONFIG?.menuActivo || "menu-simple";
+    const menuBase = menuActivo === "menu-compuesto" ? "../menu/menu-compuesto/menu-compuesto.html" : "../menu/menu-simple/menu-simple.html";
+
     list.innerHTML = payload.items.map((item) => {
         const isPromo = (item.category || "").toLowerCase().includes("promo");
         const label = `${item.qty}x ${isPromo ? "[PROMO] " : ""}${item.name}`;
+        const requiereOpciones = item.requiresOptions === true && (!item.options || item.options.length === 0);
+        const linkOpciones = requiereOpciones
+            ? menuBase + "?addOptions=" + encodeURIComponent(item.id) + "&return=pedidos"
+            : "";
+        const opcionesBlock = requiereOpciones
+            ? `<div class="resumen-menu-item-opciones">
+                <span class="resumen-menu-item-opciones-aviso"><i class="fa-solid fa-circle-exclamation"></i> Este producto requiere elegir opciones.</span>
+                <a href="${linkOpciones}" class="resumen-menu-item-opciones-link"><i class="fa-solid fa-pen-to-square"></i> Elegir opciones</a>
+               </div>`
+            : "";
         return `
-            <div class="resumen-menu-item${isPromo ? " item-promo" : ""}">
-                <span>${label}</span>
-                <strong>${formatearMoneda(item.subtotal)}</strong>
+            <div class="resumen-menu-item${isPromo ? " item-promo" : ""}${requiereOpciones ? " item-requiere-opciones" : ""}">
+                <div class="resumen-menu-item-row">
+                    <span>${label}</span>
+                    <strong>${formatearMoneda(item.subtotal)}</strong>
+                </div>
+                ${opcionesBlock}
             </div>
         `;
     }).join("");
+
+    const alertaOpciones = document.getElementById("resumen-alerta-opciones");
+    if (alertaOpciones) {
+        alertaOpciones.style.display = tieneItemsSinOpcionesObligatorias(payload) ? "block" : "none";
+    }
 
     subtotalEl.innerText = formatearMoneda(payload.subtotal || 0);
     const envioRow = document.getElementById("resumen-envio-row");
