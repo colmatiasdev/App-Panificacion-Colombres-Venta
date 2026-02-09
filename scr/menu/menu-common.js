@@ -124,12 +124,14 @@ const updateQtyUI = (id, qty) => {
     const wrapper = document.querySelector(`[data-qty-wrapper="${id}"]`);
     const note = document.getElementById(`qty-note-${id}`);
     const info = document.getElementById(`qty-info-${id}`);
+    const addBtn = document.querySelector(`.qty-btn[data-action="add"][data-id="${id}"]`);
     if (!value || !wrapper) return;
     value.textContent = qty;
     wrapper.classList.toggle("is-empty", qty === 0);
     const showMax = qty >= MAX_QTY;
     if (note) note.style.display = showMax ? "block" : "none";
     if (info) info.style.display = showMax ? "block" : "none";
+    if (addBtn) addBtn.disabled = showMax;
 };
 
 const updateCartV2 = () => {
@@ -315,7 +317,24 @@ const initCategoriesV2 = () => {
 };
 
 const APPLY_ADD_KEY = "toro_add_product_id";
+const APPLY_ADD_QTY_KEY = "toro_add_product_qty";
 const PRODUCTO_DETALLE_KEY = "toro_producto_detalle";
+
+/** Aplica el agregado desde la página producto (id + cantidad). Llamar al cargar el menú. */
+const applyPendingAddFromProduct = () => {
+    try {
+        const addId = sessionStorage.getItem(APPLY_ADD_KEY);
+        if (!addId) return;
+        sessionStorage.removeItem(APPLY_ADD_KEY);
+        const qtyRaw = sessionStorage.getItem(APPLY_ADD_QTY_KEY);
+        sessionStorage.removeItem(APPLY_ADD_QTY_KEY);
+        const qty = Math.min(MAX_QTY, Math.max(1, parseInt(qtyRaw || "1", 10) || 1));
+        const res = findItemById(addId);
+        if (res && res.item.available !== false) {
+            for (let i = 0; i < qty; i++) addItemV2(addId);
+        }
+    } catch (e) {}
+};
 
 const initActionsV2 = () => {
     document.addEventListener("click", (event) => {
@@ -325,8 +344,22 @@ const initActionsV2 = () => {
             const id = linkDetalle.dataset.id ? decodeURIComponent(linkDetalle.dataset.id) : "";
             const result = id ? findItemById(id) : null;
             if (result) {
+                const item = result.item;
                 const payload = {
-                    item: { id: result.item.id, name: result.item.name, desc: result.item.desc || "", price: result.item.price, img: result.item.img || "", available: result.item.available, subItems: result.item.subItems || [] },
+                    item: {
+                        id: item.id,
+                        name: item.name,
+                        desc: item.desc || "",
+                        price: item.price,
+                        img: item.img || "",
+                        available: item.available,
+                        subItems: item.subItems || [],
+                        category: result.category,
+                        priceRegular: item.priceRegular,
+                        mostrarDescuento: item.mostrarDescuento,
+                        porcentajeDescuento: item.porcentajeDescuento,
+                        esDestacado: item.esDestacado
+                    },
                     category: result.category,
                     returnMenu: window.MENU_RETURN || "simple"
                 };

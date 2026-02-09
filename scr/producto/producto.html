@@ -33,16 +33,52 @@
             <div class="producto-image-wrap">
                 <img id="producto-image" class="producto-image" src="" alt="">
                 <span id="producto-badge" class="producto-badge" style="display:none;">AGOTADO</span>
+                <span id="producto-destacado" class="producto-destacado" style="display:none;" aria-label="Producto destacado"><i class="fa-solid fa-star"></i></span>
             </div>
             <div class="producto-body">
+                <div id="producto-categoria-wrap" class="producto-categoria-wrap" style="display:none;">
+                    <span id="producto-categoria" class="producto-categoria"></span>
+                </div>
                 <h1 id="producto-name" class="producto-name"></h1>
                 <p id="producto-desc" class="producto-desc"></p>
                 <div id="producto-incluye" class="producto-incluye" style="display:none;">
                     <h3 class="producto-incluye-title">Incluye</h3>
                     <ul id="producto-incluye-list" class="producto-incluye-list"></ul>
                 </div>
-                <div class="producto-price-wrap">
-                    <span id="producto-price" class="producto-price"></span>
+                <div class="producto-price-wrap" id="producto-price-wrap">
+                    <div id="producto-oferta-head" class="producto-oferta-head" style="display:none;">
+                        <span class="producto-oferta-tag"><i class="fa-solid fa-tag"></i> Oferta especial</span>
+                        <div id="producto-descuento-badge" class="producto-descuento-badge" style="display:none;">
+                            <span id="producto-descuento-porcentaje"></span>% Descuento
+                        </div>
+                    </div>
+                    <div class="producto-precio-block">
+                        <div class="producto-precio-actual-row">
+                            <span class="producto-precio-label" id="producto-precio-label-text">Precio actual</span>
+                            <span id="producto-price" class="producto-price"></span>
+                        </div>
+                        <div id="producto-precio-regular-row" class="producto-precio-regular-row" style="display:none;">
+                            <span class="producto-precio-antes">Antes</span>
+                            <span id="producto-price-regular" class="producto-price-regular"></span>
+                        </div>
+                        <p id="producto-ahorro-leyenda" class="producto-ahorro-leyenda" style="display:none;"></p>
+                    </div>
+                </div>
+                <div id="producto-cantidad-wrap" class="producto-cantidad-wrap" style="display:none;">
+                    <span class="producto-cantidad-label">Agregar Cantidad</span>
+                    <div class="producto-cantidad-controls">
+                        <button type="button" class="producto-cantidad-btn" id="producto-cantidad-menos" aria-label="Quitar una unidad">
+                            <i class="fa-solid fa-minus"></i>
+                        </button>
+                        <span id="producto-cantidad-value" class="producto-cantidad-value">1</span>
+                        <button type="button" class="producto-cantidad-btn" id="producto-cantidad-mas" aria-label="Agregar una unidad">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="producto-max-info" class="producto-max-info" style="display:none;">
+                    <div class="producto-max-note" id="producto-max-note"></div>
+                    <p class="producto-max-leyenda" id="producto-max-leyenda"></p>
                 </div>
                 <div class="producto-actions">
                     <a class="producto-btn producto-btn-primary" href="#" id="producto-agregar">
