@@ -12,15 +12,20 @@ window.APP_CONFIG = {
     /** Límite máximo de productos a mostrar por categoría en el menú (0 = sin límite). */
     maxProductos: 10,
 
+    /** Carpeta del carrusel de portada (ruta desde la raíz del sitio). Todas las imágenes listadas abajo se usan en el carrusel. */
+    carruselCarpeta: "imagenes/carrusel",
+    /** Lista de nombres de archivo de imágenes en la carpeta carrusel. Agregá aquí cada nueva imagen que pongas en esa carpeta. */
+    carruselImagenes: ["Logo 2.jpg", "Logo 3.jpg", "Portada1.jpg"],
+
     // ========== CONTACTO Y REDES ==========
-    /** URL corta para compartir en redes, WhatsApp o mensajes (ej. bit.ly/tororapido). Si está vacío no se usa. Ver docs/URL_CORTA.md */
+    /** URL corta para compartir en redes, WhatsApp o mensajes (ej. bit.ly/panificacioncolombres). Si está vacío no se usa. Ver docs/URL_CORTA.md */
     urlCorta: "",
     /** Número de WhatsApp del negocio (con código de país, sin +). Se usa para enlaces y envío de pedidos. */
     telefonoNegocio: "5493814130520",
     /** Datos de Instagram para mostrar en el sitio. */
     instagram: {
-        name: "tororapido.delivery",
-        url: "https://www.instagram.com/tororapido.delivery/"
+        name: "panificacioncolombres",
+        url: "https://www.instagram.com/panificacioncolombres/"
     },
     /** Enlaces a plataformas de delivery externas (PedidosYa, Rappi, etc.). */
     plataformas: {
@@ -30,9 +35,9 @@ window.APP_CONFIG = {
 
     // ========== APPS SCRIPT Y FUENTES DE DATOS ==========
     /** URL del despliegue de Google Apps Script para envío de pedidos. */
-    appsScriptPedidosUrl: "https://script.google.com/macros/s/AKfycbxXjOn5ygjiIR7yBuoIcIvgLwF5U2ZgtQ-XGGA_YDP1Fkdk7N11QaMkOWxpKSUyw7hNKg/exec",
+    appsScriptPedidosUrl: "https://script.google.com/macros/s/AKfycbzzCRn0wQHHNg9PRQAprtyFXdAvRJT0iTFv_x3GlzZ5PFNpEcFzfvNJJBM5SxNL6TH4xw/exec",
     /** URL del despliegue de Apps Script para consultar menú y horarios (puede ser la misma que appsScriptPedidosUrl). */
-    appsScriptMenuUrl: "https://script.google.com/macros/s/AKfycbxXjOn5ygjiIR7yBuoIcIvgLwF5U2ZgtQ-XGGA_YDP1Fkdk7N11QaMkOWxpKSUyw7hNKg/exec",
+    appsScriptMenuUrl: "https://script.google.com/macros/s/AKfycbzzCRn0wQHHNg9PRQAprtyFXdAvRJT0iTFv_x3GlzZ5PFNpEcFzfvNJJBM5SxNL6TH4xw/exec",
 
     // ========== MENÚ – HOJAS DE CÁLCULO ==========
     /** URL CSV de la hoja del menú simple (opcional). Si no está, se usa Apps Script. */

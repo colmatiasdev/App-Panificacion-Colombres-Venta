@@ -1,6 +1,6 @@
 # Cómo configurar una URL corta para redes y mensajes
 
-Una **URL corta** permite compartir el enlace de tu pedido online en Instagram, WhatsApp, historias o mensajes sin pegar la dirección larga del sitio. Ejemplo: `https://bit.ly/tororapido` en lugar de `https://tudominio.com/carpeta/...`.
+Una **URL corta** permite compartir el enlace de tu pedido online en Instagram, WhatsApp, historias o mensajes sin pegar la dirección larga del sitio. Ejemplo: `https://bit.ly/panificacioncolombres` en lugar de `https://tudominio.com/carpeta/...`.
 
 ---
 
@@ -11,8 +11,8 @@ Elegí **una** de estas opciones y creá un enlace que apunte a la **URL públic
 ### Opción A: Bitly (recomendado)
 
 1. Entrá a [bitly.com](https://bitly.com) y creá una cuenta gratis.
-2. Clic en **Create** → pegá la URL completa de tu sitio (ej. `https://tudominio.com` o `https://usuario.github.io/toro-rapido`).
-3. Elegí o editá el enlace corto (ej. `bit.ly/tororapido`).
+2. Clic en **Create** → pegá la URL completa de tu sitio (ej. `https://tudominio.com` o `https://usuario.github.io/panificacion-colombres`).
+3. Elegí o editá el enlace corto (ej. `bit.ly/panificacioncolombres`).
 4. Guardá. Esa URL corta es la que vas a configurar.
 
 **Ventaja:** Podés ver estadísticas de clics y cambiar a qué URL apunta sin tocar el código.
@@ -21,15 +21,15 @@ Elegí **una** de estas opciones y creá un enlace que apunte a la **URL públic
 
 1. Entrá a [tinyurl.com](https://tinyurl.com).
 2. Pegá la URL completa de tu sitio.
-3. Opcional: elegí un alias (ej. `tinyurl.com/tororapido`).
+3. Opcional: elegí un alias (ej. `tinyurl.com/panificacioncolombres`).
 4. Generá el enlace y copialo.
 
 ### Opción C: Dominio propio corto
 
-Si tenés un dominio (ej. `tororapido.com`):
+Si tenés un dominio (ej. `panificacioncolombres.com`):
 
-- En el panel de tu proveedor de dominio (DonWeb, Nube, etc.) configurá una **redirección** o **redirect**: que `https://pedi.tororapido.com` (o `tororapido.com/pedi`) redirija a la URL completa de tu sitio.
-- La “URL corta” que vas a usar es esa: `https://pedi.tororapido.com` (o la que hayas elegido).
+- En el panel de tu proveedor de dominio (DonWeb, Nube, etc.) configurá una **redirección** o **redirect**: que `https://pedi.panificacioncolombres.com` (o `panificacioncolombres.com/pedi`) redirija a la URL completa de tu sitio.
+- La “URL corta” que vas a usar es esa: `https://pedi.panificacioncolombres.com` (o la que hayas elegido).
 
 ---
 
@@ -38,7 +38,7 @@ Si tenés un dominio (ej. `tororapido.com`):
 En **`config.js`** (raíz del proyecto), en la sección **Contacto y redes**, completá `urlCorta` con la URL corta **completa** (con `https://`):
 
 ```js
-urlCorta: "https://bit.ly/tororapido",
+urlCorta: "https://bit.ly/panificacioncolombres",
 ```
 
 Si todavía no tenés URL corta, dejalo vacío:

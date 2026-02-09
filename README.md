@@ -1,6 +1,6 @@
-# Toro Rápido – Web de pedidos y menú
+# Panificación Colombres – Web de pedidos y menú
 
-Sitio web para negocio de comidas: portada, menú con productos desde Google Sheets, detalle de producto con opciones/agregados, carrito, envío por WhatsApp y horarios de atención.
+Sitio web para panadería artesanal: portada, menú con productos desde Google Sheets, detalle de producto con opciones/agregados, carrito, envío por WhatsApp y horarios de atención. Elaboración artesanal con el mejor precio y calidad.
 
 ## Características
 
@@ -70,8 +70,7 @@ personal/
     ├── producto/          # Detalle de producto y opciones
     ├── pedidos/           # Formulario y envío a WhatsApp
     ├── confirmacion/      # Página post-pedido
-    ├── footer/            # Pie de página
-    └── administracion/    # Módulo admin (dashboard, login)
+    └── footer/            # Pie de página
 ```
 
 ## Documentación

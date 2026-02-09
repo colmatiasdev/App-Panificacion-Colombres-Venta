@@ -1,6 +1,13 @@
 :root {
-    --toro-red: #e11d48;
-    --toro-dark: #0f172a;
+    --pan-primary: #8B6914;
+    --pan-primary-light: #B8860B;
+    --pan-dark: #3E2723;
+    --pan-cream: #F5F0E6;
+    --pan-wheat: #C4A035;
+    --pan-white: #ffffff;
+    /* compatibilidad con referencias existentes */
+    --toro-red: #8B6914;
+    --toro-dark: #3E2723;
     --toro-white: #ffffff;
 }
 
@@ -9,8 +16,8 @@ html { -webkit-text-size-adjust: 100%; -webkit-overflow-scrolling: touch; }
 body {
     margin: 0;
     font-family: 'Inter', system-ui, sans-serif;
-    background: #ffffff;
-    color: var(--toro-dark);
+    background: var(--pan-cream);
+    color: var(--pan-dark);
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     overflow-x: hidden;
@@ -21,7 +28,7 @@ body {
     height: 100vh;
     width: 100%;
     overflow: hidden;
-    background: var(--toro-dark);
+    background: var(--pan-dark);
 }
 
 .carousel-container {
@@ -60,7 +67,7 @@ body {
     text-align: center;
     padding: 20px;
     z-index: 10;
-    background: rgba(15, 23, 42, 0.55);
+    background: rgba(62, 39, 35, 0.6);
     backdrop-filter: blur(4px);
 }
 
@@ -73,11 +80,12 @@ body {
 }
 
 .hero-content h1 {
-    font-family: 'Bungee', cursive;
+    font-family: 'DM Serif Display', Georgia, serif;
     font-size: 3rem;
     color: white;
     margin-bottom: 12px;
     text-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 4px 20px rgba(0,0,0,0.5);
+    font-weight: 400;
 }
 
 .hero-content p {
@@ -253,24 +261,25 @@ body {
 }
 
 .btn-primary {
-    background: var(--toro-red);
+    background: var(--pan-primary);
     color: white;
     padding: 14px 28px;
     min-height: 44px;
     min-width: 44px;
     border-radius: 50px;
     text-decoration: none;
-    font-weight: 800;
+    font-weight: 700;
     text-transform: uppercase;
+    letter-spacing: 0.02em;
     transition: 0.3s;
-    box-shadow: 0 8px 25px rgba(225, 29, 72, 0.4);
+    box-shadow: 0 8px 25px rgba(139, 105, 20, 0.45);
     font-size: 0.9rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
 }
 
-.btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(225, 29, 72, 0.6); }
+.btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(139, 105, 20, 0.55); }
 
 .btn-secondary {
     background: rgba(255, 255, 255, 0.15);
@@ -290,8 +299,10 @@ body {
 
 .info-section-mensaje {
     padding: 80px 20px;
-    background: white;
-    color: var(--toro-dark);
+    background: var(--pan-white);
+    color: var(--pan-dark);
+    border-top: 1px solid rgba(196, 160, 53, 0.2);
+    border-bottom: 1px solid rgba(196, 160, 53, 0.2);
 }
 
 .info-container { max-width: 1000px; margin: 0 auto; text-align: center; }
@@ -299,7 +310,9 @@ body {
 .info-header h2 {
     font-size: 2rem;
     margin-bottom: 12px;
-    font-family: 'Bungee', cursive;
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-weight: 400;
+    color: var(--pan-dark);
 }
 
 .info-header p {
@@ -310,7 +323,10 @@ body {
 
 .social-section {
     padding: 60px 20px;
-    background: #f8fafc;
+    background: var(--pan-cream);
+}
+.social-section:nth-child(even) {
+    background: rgba(255, 255, 255, 0.6);
 }
 .social-container {
     max-width: 900px;
@@ -321,15 +337,16 @@ body {
 }
 .social-icon {
     font-size: 2rem;
-    color: var(--toro-red);
+    color: var(--pan-primary);
 }
 .social-icon.whatsapp-icon {
     color: #25d366;
 }
 .social-title {
-    font-family: 'Bungee', cursive;
+    font-family: 'DM Serif Display', Georgia, serif;
     font-size: 1.2rem;
-    color: var(--toro-dark);
+    font-weight: 400;
+    color: var(--pan-dark);
 }
 .social-card {
     display: inline-flex;
@@ -372,8 +389,8 @@ body {
     font-size: 2rem;
 }
 .delivery-title {
-    font-weight: 800;
-    color: var(--toro-dark);
+    font-weight: 700;
+    color: var(--pan-dark);
 }
 .delivery-btn {
     display: inline-flex;
@@ -429,7 +446,7 @@ body {
 .horario-regular-titulo {
     font-weight: 700;
     font-size: 0.95rem;
-    color: var(--toro-dark);
+    color: var(--pan-dark);
     margin-bottom: 10px;
     text-align: center;
     padding: 4px 0;
@@ -450,7 +467,7 @@ body {
 }
 .horario-dia-nombre {
     font-weight: 700;
-    color: var(--toro-dark);
+    color: var(--pan-dark);
     font-size: 0.95rem;
 }
 .horario-horarios-col {
@@ -514,7 +531,7 @@ body {
 }
 .horario-proximo-feriado-dia {
     font-size: 0.95rem;
-    color: var(--toro-dark);
+    color: var(--pan-dark);
     font-weight: 600;
     margin-bottom: 6px;
     text-align: center;
@@ -552,8 +569,8 @@ body {
 
 .index-footer {
     padding: 36px 20px 28px;
-    background: #ffffff;
-    border-top: 1px solid #e2e8f0;
+    background: var(--pan-white);
+    border-top: 2px solid rgba(139, 105, 20, 0.25);
 }
 .footer-container {
     max-width: 1000px;
@@ -563,10 +580,12 @@ body {
     text-align: center;
 }
 .footer-title {
-    font-family: 'Bungee', cursive;
-    font-size: 1rem;
-    letter-spacing: 1px;
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+    letter-spacing: 0.02em;
     margin: 0;
+    color: var(--pan-dark);
 }
 .footer-links {
     display: flex;
@@ -575,7 +594,7 @@ body {
     flex-wrap: wrap;
 }
 .footer-link {
-    color: var(--toro-red);
+    color: var(--pan-primary);
     text-decoration: none;
     font-weight: 700;
     font-size: 0.85rem;

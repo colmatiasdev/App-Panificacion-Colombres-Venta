@@ -362,7 +362,7 @@
             applySoloCatalogoSiCorresponde(agregarBtn);
         }
 
-        document.title = (item.name || "Producto") + " - Toro Rápido";
+        document.title = (item.name || "Producto") + " - Panificación Colombres";
     }
 
     /** Si el local está cerrado y no hay reserva, deshabilita el botón agregar (modo catálogo). */
@@ -381,7 +381,6 @@
                 agregarBtn.classList.add("disabled", "producto-solo-catalogo");
                 agregarBtn.style.pointerEvents = "none";
                 agregarBtn.href = "#";
-                agregarBtn.innerHTML = '<i class="fa-solid fa-store-slash"></i> MODO CATÁLOGO — Podrás realizar tu pedido cuando estemos abiertos';
             }
         } catch (e) {}
     }

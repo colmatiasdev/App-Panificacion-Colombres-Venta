@@ -106,8 +106,8 @@ async function enviarPedido() {
     const params = new URLSearchParams(window.location.search);
     const esReserva = params.get("reserva") === "1";
     let msg = esReserva
-        ? `*TORO RÁPIDO - RESERVA*\n_El pedido será preparado para cuando abramos el local._\n_ID: ${idPedido}_\n\n*Cliente* ${nombre}\n*Domicilio:* ${direccion}\n*WSP:* ${whatsapp}\n\n*Detalle del Pedido*\n${itemsWhatsApp}`
-        : `*TORO RÁPIDO - DELIVERY*\n_ID: ${idPedido}_\n\n*Cliente* ${nombre}\n*Domicilio:* ${direccion}\n*WSP:* ${whatsapp}\n\n*Detalle del Pedido*\n${itemsWhatsApp}`;
+        ? `*PANIFICACIÓN COLOMBRES - RESERVA*\n_El pedido será preparado para cuando abramos el local._\n_ID: ${idPedido}_\n\n*Cliente* ${nombre}\n*Domicilio:* ${direccion}\n*WSP:* ${whatsapp}\n\n*Detalle del Pedido*\n${itemsWhatsApp}`
+        : `*PANIFICACIÓN COLOMBRES - DELIVERY*\n_ID: ${idPedido}_\n\n*Cliente* ${nombre}\n*Domicilio:* ${direccion}\n*WSP:* ${whatsapp}\n\n*Detalle del Pedido*\n${itemsWhatsApp}`;
     msg += `\n\n*SUBTOTAL:* ${formatearMoneda(subtotal)}`;
     msg += `\n*ENVÍO:* ${costoEnvio === 0 ? "¡GRATIS!" : formatearMoneda(costoEnvio)}`;
     msg += `\n*TOTAL:* ${formatearMoneda(subtotal + costoEnvio)}\n\n_Sujeto a confirmación de zona._`;

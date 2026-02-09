@@ -43,8 +43,8 @@ body {
 
 .header-premium {
     position: relative;
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.5) 100%), 
-                url('https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80');
+    background: linear-gradient(180deg, rgba(62, 39, 35, 0.75) 0%, rgba(62, 39, 35, 0.5) 100%), 
+                url('../../../imagenes/carrusel/Portada1.jpg');
     background-size: cover;
     background-position: center;
     padding: 24px 20px 32px;
@@ -85,18 +85,18 @@ body {
 .logo-circle {
     width: 72px;
     height: 72px;
-    background: var(--primary-red);
+    background: #8B6914;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 2.1rem;
-    box-shadow: 0 0 20px rgba(225, 29, 72, 0.5);
+    box-shadow: 0 0 20px rgba(139, 105, 20, 0.5);
     animation: pulse 2s infinite;
 }
 @keyframes pulse {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7); }
-    70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(225, 29, 72, 0); }
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 105, 20, 0.5); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(139, 105, 20, 0); }
     100% { transform: scale(1); }
 }
 .header-title {
@@ -108,7 +108,7 @@ body {
     line-height: 1;
 }
 .header-title span {
-    color: var(--primary-red);
+    color: #C4A035;
     display: block;
     font-size: 1.5rem;
     letter-spacing: 5px;
@@ -126,7 +126,7 @@ body {
     margin: 14px 0;
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
-.location-tag i { color: var(--primary-red); }
+.location-tag i { color: #C4A035; }
 .keywords-flex {
     display: flex;
     justify-content: center;
@@ -145,7 +145,7 @@ body {
     gap: 6px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
-.badge-modern i { color: var(--primary-red); }
+.badge-modern i { color: #8B6914; }
 
 .menu-horario-alerta-wrap {
     margin-top: 12px;
