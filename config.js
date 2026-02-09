@@ -14,8 +14,8 @@ window.APP_CONFIG = {
 
     /** Carpeta del carrusel de portada (ruta desde la raíz del sitio). Todas las imágenes listadas abajo se usan en el carrusel. */
     carruselCarpeta: "imagenes/carrusel",
-    /** Lista de nombres de archivo de imágenes en la carpeta carrusel. Agregá aquí cada nueva imagen que pongas en esa carpeta. */
-    carruselImagenes: ["Logo 2.jpg", "Logo 3.jpg", "Portada1.jpg"],
+    /** Lista de nombres de archivo de imágenes en la carpeta carrusel. Imagen acorde al rubro panadería artesanal. */
+    carruselImagenes: ["portada-panaderia.jpg"],
 
     // ========== CONTACTO Y REDES ==========
     /** URL corta para compartir en redes, WhatsApp o mensajes (ej. bit.ly/panificacioncolombres). Si está vacío no se usa. Ver docs/URL_CORTA.md */

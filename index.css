@@ -56,8 +56,9 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-size: cover;
+    background-size: 100% auto;
     background-position: center;
+    background-repeat: no-repeat;
     opacity: 0;
     transition: opacity 1.5s ease-in-out;
     transform: scale(1.05);
@@ -80,8 +81,41 @@ body {
     text-align: center;
     padding: 20px;
     z-index: 10;
-    background: linear-gradient(160deg, rgba(220, 38, 38, 0.35) 0%, rgba(31, 41, 55, 0.7) 30%, rgba(13, 148, 136, 0.25) 70%, rgba(139, 92, 246, 0.3) 100%);
-    backdrop-filter: blur(4px);
+    background: linear-gradient(160deg, rgba(0, 0, 0, 0.5) 0%, rgba(31, 41, 55, 0.75) 25%, rgba(31, 41, 55, 0.65) 50%, rgba(0, 0, 0, 0.55) 100%);
+    backdrop-filter: blur(6px);
+}
+
+.hero-auth {
+    position: absolute;
+    top: max(16px, env(safe-area-inset-top));
+    left: max(16px, env(safe-area-inset-left));
+    z-index: 11;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+.hero-auth-link {
+    color: rgba(255, 255, 255, 0.95);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    transition: background 0.2s, color 0.2s;
+}
+.hero-auth-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+.hero-auth-link-register {
+    background: var(--logo-arc-warm);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+.hero-auth-link-register:hover {
+    background: linear-gradient(90deg, #b91c1c, #c2410c, #d97706);
+    color: white;
 }
 
 .hero-estado-local-badge {
@@ -309,6 +343,144 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+}
+
+/* Portada tipo logo: misma disposición y colores del logo */
+.portada-logo {
+    position: relative;
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px 56px;
+    background: var(--logo-white);
+    text-align: center;
+}
+.portada-logo-arc {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 12px;
+    border-radius: 0 0 12px 12px;
+}
+.portada-logo-arc-top {
+    top: 0;
+    background: var(--logo-arc-warm);
+    border-radius: 0 0 12px 12px;
+}
+.portada-logo-arc-bottom {
+    bottom: 0;
+    background: var(--logo-arc-cool);
+    border-radius: 12px 12px 0 0;
+}
+.portada-logo-inner {
+    max-width: 520px;
+    margin: 0 auto;
+}
+.portada-logo-line1 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 1.35rem;
+    font-weight: 400;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--logo-red);
+    margin: 0 0 4px;
+}
+.portada-logo-line2 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--logo-arc-cool);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin: 0 0 16px;
+}
+.portada-logo-line3 {
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--logo-orange);
+    margin: 0 0 4px;
+}
+.portada-logo-line4 {
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.45rem;
+    font-weight: 500;
+    color: var(--logo-teal);
+    margin: 0 0 28px;
+}
+.portada-logo-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    min-height: 44px;
+    border-radius: 50px;
+    background: var(--logo-arc-warm);
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+    box-shadow: 0 8px 24px rgba(220, 38, 38, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.portada-logo-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(234, 88, 12, 0.4);
+}
+.portada-logo-auth {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+.portada-logo-btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    min-height: 44px;
+    border-radius: 50px;
+    background: transparent;
+    color: var(--logo-teal);
+    border: 2px solid var(--logo-teal);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+.portada-logo-btn-outline:hover {
+    background: var(--logo-teal);
+    color: white;
+    transform: translateY(-2px);
+}
+.portada-logo-btn-secondary {
+    background: transparent;
+    color: var(--logo-dark);
+    border: 2px solid var(--logo-dark);
+    box-shadow: none;
+}
+.portada-logo-btn-secondary:hover {
+    background: var(--logo-dark);
+    color: white;
+    box-shadow: 0 6px 20px rgba(31, 41, 55, 0.3);
+}
+
+@media (max-width: 600px) {
+    .portada-logo { min-height: 60vh; padding: 40px 16px 48px; }
+    .portada-logo-line1 { font-size: 1.1rem; letter-spacing: 0.2em; }
+    .portada-logo-line2 { font-size: 2.5rem; }
+    .portada-logo-line3 { font-size: 1.4rem; }
+    .portada-logo-line4 { font-size: 1.25rem; }
+    .portada-logo-auth { flex-direction: column; }
+    .hero-auth-link { font-size: 0.82rem; padding: 6px 12px; }
 }
 
 .info-section-mensaje {

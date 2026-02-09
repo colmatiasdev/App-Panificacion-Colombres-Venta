@@ -55,15 +55,100 @@ body {
 
 .header-premium {
     position: relative;
-    background: linear-gradient(160deg, rgba(220, 38, 38, 0.25) 0%, rgba(31, 41, 55, 0.65) 40%, rgba(13, 148, 136, 0.2) 70%, rgba(139, 92, 246, 0.25) 100%),
-                url('../../../imagenes/carrusel/Portada1.jpg');
-    background-size: cover;
+    background: linear-gradient(160deg, rgba(0, 0, 0, 0.45) 0%, rgba(31, 41, 55, 0.65) 35%, rgba(31, 41, 55, 0.6) 65%, rgba(0, 0, 0, 0.5) 100%),
+                url('../../../imagenes/carrusel/portada-panaderia.jpg');
+    background-size: 100% auto;
     background-position: center;
+    background-repeat: no-repeat;
     padding: 24px 20px 32px;
     border-radius: 0 0 36px 36px;
     text-align: center;
     color: white;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45), inset 0 0 80px rgba(0, 0, 0, 0.2);
+}
+.header-premium::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 0 0 36px 36px;
+    background: rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+}
+
+/* Portada logo: mismo diseño que index (PANIFICACIÓN, COLOMBRES, Elaboración Artesanal, El Mejor Precio y Calidad) */
+.header-portada {
+    padding-top: 12px;
+    padding-bottom: 20px;
+}
+.header-portada-arc {
+    height: 8px;
+    margin: 0 auto;
+    width: calc(100% - 32px);
+    max-width: 360px;
+    border-radius: 0 0 8px 8px;
+}
+.header-portada-arc-top {
+    margin-bottom: 16px;
+    background: var(--logo-arc-warm);
+}
+.header-portada-arc-bottom {
+    margin-top: 16px;
+    border-radius: 8px 8px 0 0;
+    background: var(--logo-arc-cool);
+}
+.header-portada-inner {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+.header-portada-line1 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 1.15rem;
+    font-weight: 400;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--logo-red);
+    margin: 0 0 2px;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+.header-portada-line2 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 2.6rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 10px;
+    background: linear-gradient(135deg, #0D9488 0%, #14B8A6 30%, #2DD4BF 60%, #0EA5E9 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 12px rgba(13, 148, 136, 0.5));
+}
+.header-portada-line3 {
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.45rem;
+    font-weight: 600;
+    color: #F59E0B;
+    margin: 0 0 2px;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+.header-portada-line4 {
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: #2DD4BF;
+    margin: 0;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.header-portada .header-actions {
+    position: absolute;
+    top: max(16px, env(safe-area-inset-top));
+    left: max(16px, env(safe-area-inset-left));
+    z-index: 10;
+    margin-bottom: 0;
 }
 .header-actions {
     display: flex;
@@ -118,13 +203,35 @@ body {
     text-transform: uppercase;
     letter-spacing: -1px;
     line-height: 1;
+    background: linear-gradient(135deg, #0D9488 0%, #14B8A6 25%, #2DD4BF 50%, #5EEAD4 75%, #0EA5E9 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 14px rgba(13, 148, 136, 0.5));
 }
 .header-title span {
-    color: #0EA5E9;
     display: block;
     font-size: 1.5rem;
     letter-spacing: 5px;
     margin-top: 6px;
+    background: linear-gradient(135deg, #0D9488 0%, #14B8A6 35%, #2DD4BF 65%, #0EA5E9 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+}
+.header-tagline {
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 8px 0 0;
+    letter-spacing: 0.02em;
+    background: linear-gradient(90deg, #A855F7 0%, #C084FC 50%, #E879F9 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
 }
 .location-tag {
     background: rgba(255, 255, 255, 0.1);
@@ -1124,6 +1231,11 @@ body {
     .logo-circle { width: 52px; height: 52px; font-size: 1.5rem; }
     .header-title { font-size: 1.45rem; }
     .header-title span { font-size: 0.8rem; letter-spacing: 2px; }
+    .header-tagline { font-size: 0.88rem; }
+    .header-portada-line1 { font-size: 1rem; letter-spacing: 0.2em; }
+    .header-portada-line2 { font-size: 2rem; }
+    .header-portada-line3 { font-size: 1.25rem; }
+    .header-portada-line4 { font-size: 1.1rem; }
     .location-tag { font-size: 0.74rem; padding: 4px 8px; }
     .badge-modern { padding: 5px 9px; font-size: 0.68rem; }
     .category-tabs { padding: 10px 12px 6px; }

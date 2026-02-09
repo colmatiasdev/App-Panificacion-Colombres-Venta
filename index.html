@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;600;700&family=Dancing+Script:wght@500;600;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
     <link rel="stylesheet" href="scr/footer/footer.css">
     <script src="config.js" defer></script>
@@ -22,6 +22,10 @@
     </div>
 
     <div class="hero-overlay">
+        <nav class="hero-auth" aria-label="Acceso">
+            <a href="scr/auth/login.html" class="hero-auth-link">Iniciar sesión</a>
+            <a href="scr/auth/registro.html" class="hero-auth-link hero-auth-link-register">Registrarse</a>
+        </nav>
         <div class="hero-abierto hero-estado-local-badge" id="hero-estado-local" data-estado="verificando">
             <i class="fa-solid fa-circle-notch fa-spin"></i>
             <span class="hero-abierto-texto">Comprobando si estamos abiertos...</span>
@@ -38,6 +42,22 @@
             </div>
         </div>
     </div>
+</section>
+
+<section class="portada-logo">
+    <div class="portada-logo-arc portada-logo-arc-top"></div>
+    <div class="portada-logo-inner">
+        <p class="portada-logo-line1">PANIFICACIÓN</p>
+        <h2 class="portada-logo-line2">COLOMBRES</h2>
+        <p class="portada-logo-line3">Elaboración Artesanal</p>
+        <p class="portada-logo-line4">El Mejor Precio y Calidad</p>
+        <div class="portada-logo-auth">
+            <a href="scr/auth/login.html" class="portada-logo-btn-outline">Iniciar sesión</a>
+            <a href="scr/auth/registro.html" class="portada-logo-btn">Registrarse</a>
+        </div>
+        <a href="#info" class="portada-logo-btn portada-logo-btn-secondary">Conocenos</a>
+    </div>
+    <div class="portada-logo-arc portada-logo-arc-bottom"></div>
 </section>
 
 <section id="info" class="info-section-mensaje">
